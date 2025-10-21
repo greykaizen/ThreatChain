@@ -13,6 +13,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts"
 import { Shield, Lock, FileCheck, Share2 } from "lucide-react"
 
@@ -22,6 +23,8 @@ const trustMetrics = [
   { metric: "Timeliness", value: 85 },
   { metric: "Validation", value: 90 },
 ]
+
+const TRUST_BAR_COLORS = ["#93c5fd", "#86efac", "#2c2c2c", "#c4b5fd"]
 
 const blockchainAudit = [
   { id: 1, txId: "0x7f3a...", hash: "a1b2c3d4", timestamp: "2024-01-15 10:30", verified: "Yes" },
@@ -59,16 +62,20 @@ export default function TrustProvenance() {
 
         <div style={cardStyle} className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Trust Score Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={250}>
             <BarChart data={trustMetrics}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="metric" stroke="#6b7280" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
-              <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
+              <XAxis dataKey="metric" stroke="#9ca3af" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#9ca3af" tick={{ fontSize: 12 }} />
               <Tooltip
                 contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "0.5rem" }}
                 labelStyle={{ color: "#111827" }}
               />
-              <Bar dataKey="value" fill="#93c5fd" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={60}>
+                {trustMetrics.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={TRUST_BAR_COLORS[index % TRUST_BAR_COLORS.length]} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>

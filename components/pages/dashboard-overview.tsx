@@ -41,6 +41,7 @@ const trustScoreTrend = [
 ]
 
 const COLORS = ["#93c5fd", "#86efac", "#2c2c2c", "#c084fc"]
+const BAR_COLORS = ["#93c5fd", "#86efac", "#2c2c2c", "#c4b5fd", "#fbbf24"]
 
 const cardStyle = {
   backgroundColor: "#ffffff",
@@ -109,7 +110,7 @@ export default function DashboardOverview() {
 
       <div style={cardStyle} className="p-6">
         <h3 className="text-base font-semibold text-gray-900 mb-4">Traffic by Device</h3>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={250}>
           <BarChart data={iocsPerFeed}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 12 }} />
@@ -118,7 +119,11 @@ export default function DashboardOverview() {
               contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "0.5rem" }}
               labelStyle={{ color: "#111827" }}
             />
-            <Bar dataKey="value" fill="#93c5fd" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={60}>
+              {iocsPerFeed.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
