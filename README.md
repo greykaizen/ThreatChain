@@ -48,7 +48,7 @@ A TAXII 2.1-compliant server exposes the enriched, scored indicators. Clients qu
 
 The diagram shows the complete flow from raw feeds through scoring and attestation to client consumption:
 
-![ThreatChain architecture](docs/diagrams/final_design-x2.png)
+![ThreatChain architecture](docs/diagrams/functional-architecture-diagram-x2.png)
 
 Feeds arrive in multiple formats (OpenCTI exports, MISP XML, STIX bundles, custom CSV). The parser normalizes everything to STIX 2.1 JSON while capturing metadata. Cleaned data flows to the trust scoring model, which assigns scores based on source reputation, fake patterns, corroboration, and timeliness. Scored indicators and their provenance metadata are hashed and attested on the blockchain. Clients pull enriched indicators through the TAXII server.
 
