@@ -15,7 +15,6 @@ Existing platforms like MISP and OpenCTI focus on sharing and enrichment, but th
 ---
 
 ## How ThreatChain Works
-
 ThreatChain treats every indicator as evidence that needs a receipt. The pipeline has four main components:
 
 **Parser & Normalizer**  
