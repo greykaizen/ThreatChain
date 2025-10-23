@@ -7,6 +7,7 @@ ThreatChain is a threat intelligence pipeline that preserves the full lineage of
 ---
 
 ## The Problem
+
 Modern threat feeds are a black box. You receive an IP address flagged as malicious, but you don't know if it came from a reliable source, whether it's been corroborated by others, or if it was modified during processing. When incidents happen, reconstructing the decision trail is nearly impossible.
 
 Existing platforms like MISP and OpenCTI focus on sharing and enrichment, but they don't solve the fundamental trust problem: *how do you know which indicators are worth acting on?*
