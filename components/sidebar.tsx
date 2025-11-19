@@ -18,15 +18,9 @@ const navItems = [
 
 export default function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
   return (
-    <aside
-      style={{
-        backgroundColor: "#ffffff",
-        borderRight: "1px solid #e5e7eb",
-      }}
-      className="w-64 flex flex-col"
-    >
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Dashboards</h2>
+    <aside className="w-64 flex flex-col bg-sidebar border-r border-sidebar-border">
+      <div className="p-6 border-b border-sidebar-border">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dashboards</h2>
       </div>
 
       <nav className="flex-1 p-3 space-y-1">
@@ -38,12 +32,11 @@ export default function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
             <button
               key={item.id}
               onClick={() => setCurrentPage(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all ${
                 isActive
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
               }`}
-              style={{ transition: "all 150ms ease" }}
             >
               <Icon className="w-4 h-4" />
               <span>{item.label}</span>

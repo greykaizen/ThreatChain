@@ -1,22 +1,17 @@
 "use client"
 
 import { Search, Bell, User } from "lucide-react"
+import { ThemeToggle } from "./theme-toggle"
 
 export default function Navbar() {
   return (
-    <nav
-      style={{
-        backgroundColor: "#ffffff",
-        borderBottom: "1px solid #e5e7eb",
-      }}
-      className="px-6 py-3 flex items-center justify-between"
-    >
+    <nav className="px-6 py-3 flex items-center justify-between bg-card border-b border-border">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-gray-900 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-md bg-gray-900 dark:bg-primary flex items-center justify-center">
             <span className="text-white font-bold text-xs">TC</span>
           </div>
-          <h1 className="text-base font-semibold text-gray-900">ThreadChain</h1>
+          <h1 className="text-base font-semibold text-foreground">ThreadChain</h1>
         </div>
         
         <div className="relative ml-4">
@@ -24,17 +19,18 @@ export default function Navbar() {
           <input
             type="text"
             placeholder="Search"
-            className="pl-9 pr-4 py-1.5 text-sm border border-gray-200 rounded-md bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+            className="pl-9 pr-4 py-1.5 text-sm border border-border rounded-md bg-muted text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent w-64"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="p-2 rounded-md hover:bg-gray-100" style={{ transition: "all 150ms ease" }}>
-          <Bell className="w-4 h-4 text-gray-600" />
+        <ThemeToggle />
+        <button className="p-2 rounded-md hover:bg-muted transition-all">
+          <Bell className="w-4 h-4 text-muted-foreground" />
         </button>
-        <button className="p-2 rounded-md hover:bg-gray-100" style={{ transition: "all 150ms ease" }}>
-          <User className="w-4 h-4 text-gray-600" />
+        <button className="p-2 rounded-md hover:bg-muted transition-all">
+          <User className="w-4 h-4 text-muted-foreground" />
         </button>
       </div>
     </nav>
