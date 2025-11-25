@@ -1,0 +1,93 @@
+{
+  "type": "bundle",
+  "id": "bundle--44af6c39-c09b-4d56-a29e-4c8ce5b8b5b5",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "indicator",
+      "id": "indicator--01234567-89ab-cdef-0123-456789abcdef",
+      "spec_version": "2.1",
+      "created": "2024-01-15T10:30:00.000Z",
+      "modified": "2024-01-15T10:30:00.000Z",
+      "pattern": "[ipv4-addr:value = '192.168.1.100']",
+      "pattern_type": "stix",
+      "valid_from": "2024-01-15T10:30:00.000Z",
+      "labels": ["malicious-activity"],
+      "name": "Malicious IP Address",
+      "description": "IP address associated with botnet activity",
+      "confidence": 85
+    },
+    {
+      "type": "indicator",
+      "id": "indicator--11234567-89ab-cdef-0123-456789abcdef",
+      "spec_version": "2.1",
+      "created": "2024-01-15T11:45:00.000Z",
+      "modified": "2024-01-15T11:45:00.000Z",
+      "pattern": "[domain-name:value = 'malicious-site.com']",
+      "pattern_type": "stix",
+      "valid_from": "2024-01-15T11:45:00.000Z",
+      "labels": ["malicious-activity"],
+      "name": "Phishing Domain",
+      "description": "Domain used for phishing attacks targeting financial institutions",
+      "confidence": 92
+    },
+    {
+      "type": "indicator",
+      "id": "indicator--21234567-89ab-cdef-0123-456789abcdef",
+      "spec_version": "2.1",
+      "created": "2024-01-15T09:20:00.000Z",
+      "modified": "2024-01-15T09:20:00.000Z",
+      "pattern": "[file:hashes.MD5 = 'd41d8cd98f00b204e9800998ecf8427e']",
+      "pattern_type": "stix",
+      "valid_from": "2024-01-15T09:20:00.000Z",
+      "labels": ["malicious-activity"],
+      "name": "Ransomware File Hash",
+      "description": "MD5 hash of known ransomware executable",
+      "confidence": 78
+    },
+    {
+      "type": "malware",
+      "id": "malware--31234567-89ab-cdef-0123-456789abcdef",
+      "spec_version": "2.1",
+      "created": "2024-01-15T10:00:00.000Z",
+      "modified": "2024-01-15T10:00:00.000Z",
+      "name": "Emotet",
+      "description": "Banking trojan and malware-as-a-service",
+      "malware_types": ["trojan", "backdoor"],
+      "is_family": true
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--41234567-89ab-cdef-0123-456789abcdef",
+      "spec_version": "2.1",
+      "created": "2024-01-15T10:15:00.000Z",
+      "modified": "2024-01-15T10:15:00.000Z",
+      "name": "Spearphishing Attachment",
+      "description": "Adversaries may send spearphishing emails with a malicious attachment",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1566.001",
+          "url": "https://attack.mitre.org/techniques/T1566/001/"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "initial-access"
+        }
+      ]
+    },
+    {
+      "type": "identity",
+      "id": "identity--51234567-89ab-cdef-0123-456789abcdef",
+      "spec_version": "2.1",
+      "created": "2024-01-15T10:00:00.000Z",
+      "modified": "2024-01-15T10:00:00.000Z",
+      "name": "ThreadChain CTI Platform",
+      "description": "Cyber Threat Intelligence Platform",
+      "identity_class": "organization",
+      "sectors": ["technology"]
+    }
+  ]
+}

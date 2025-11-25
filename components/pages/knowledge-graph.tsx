@@ -41,8 +41,10 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
     type: "",
   })
   const [graphGenerated, setGraphGenerated] = useState(false)
+  const [initialGraphGenerated, setInitialGraphGenerated] = useState(false)
   const [nodes, setNodes] = useState<GraphNode[]>([])
   const [edges, setEdges] = useState<GraphEdge[]>([])
+  const [allAttributes, setAllAttributes] = useState<string[]>([])
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const relationshipTypes = [
@@ -53,6 +55,95 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
     "attributed_to",
     "targets",
   ]
+
+  // Generate initial graph automatically when data is available
+  const generateInitialGraph = () => {
+    if (csvData.length === 0) return
+
+    // Get all attributes from CSV data
+    const attributes = Object.keys(csvData[0] || {})
+    setAllAttributes(attributes)
+
+    // Create automatic relationships based on common CTI patterns
+    const autoRelationships: Relationship[] = []
+    
+    // Common threat intelligence relationships
+    if (attributes.includes('indicator_type') && attributes.includes('indicator_value')) {
+      autoRelationships.push({
+        id: 'auto-1',
+        source: 'indicator_type',
+        target: 'indicator_value',
+        type: 'indicates'
+      })
+    }
+    
+    if (attributes.includes('threat_type') && attributes.includes('indicator_value')) {
+      autoRelationships.push({
+        id: 'auto-2',
+        source: 'threat_type',
+        target: 'indicator_value',
+        type: 'related_to'
+      })
+    }
+    
+    if (attributes.includes('severity') && attributes.includes('threat_type')) {
+      autoRelationships.push({
+        id: 'auto-3',
+        source: 'threat_type',
+        target: 'severity',
+        type: 'has_severity'
+      })
+    }
+    
+    if (attributes.includes('source') && attributes.includes('indicator_value')) {
+      autoRelationships.push({
+        id: 'auto-4',
+        source: 'source',
+        target: 'indicator_value',
+        type: 'observed_in'
+      })
+    }
+
+    // If no automatic relationships found, create basic connections between first few attributes
+    if (autoRelationships.length === 0 && attributes.length >= 2) {
+      for (let i = 0; i < Math.min(attributes.length - 1, 3); i++) {
+        autoRelationships.push({
+          id: `auto-basic-${i}`,
+          source: attributes[i],
+          target: attributes[i + 1],
+          type: 'related_to'
+        })
+      }
+    }
+
+    setRelationships(autoRelationships)
+
+    // Generate nodes and edges for initial graph
+    const nodeSet = new Set<string>()
+    autoRelationships.forEach((rel) => {
+      nodeSet.add(rel.source)
+      nodeSet.add(rel.target)
+    })
+
+    const initialNodes: GraphNode[] = Array.from(nodeSet).map((attr) => ({
+      id: attr,
+      label: attr,
+      type: "attribute",
+    }))
+
+    const initialEdges: GraphEdge[] = autoRelationships.map((rel) => ({
+      source: rel.source,
+      target: rel.target,
+      label: rel.type,
+    }))
+
+    setNodes(initialNodes)
+    setEdges(initialEdges)
+    setInitialGraphGenerated(true)
+    
+    // Draw the initial graph
+    setTimeout(() => drawGraph(initialNodes, initialEdges), 100)
+  }
 
   const addRelationship = () => {
     if (newRelationship.source && newRelationship.target && newRelationship.type) {
@@ -164,7 +255,7 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
         valid_from: new Date().toISOString(),
       }
 
-      selectedAttributes.forEach((attr) => {
+      allAttributes.forEach((attr) => {
         if (row[attr]) {
           indicator[attr] = row[attr]
         }
@@ -206,7 +297,14 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
     }
   }, [graphGenerated, nodes, edges])
 
-  if (selectedAttributes.length === 0 || csvData.length === 0) {
+  // Auto-generate initial graph when component loads with data
+  useEffect(() => {
+    if (csvData.length > 0 && !initialGraphGenerated) {
+      generateInitialGraph()
+    }
+  }, [csvData, initialGraphGenerated])
+
+  if (csvData.length === 0) {
     return (
       <div className="p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">Knowledge Graph</h2>
@@ -217,7 +315,7 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No Data Available</h3>
             <p className="text-sm text-gray-600 mb-6 text-center max-w-md">
-              Please upload a CSV file and select attributes from the Feed Management page first.
+              Please upload a CSV file from the Feed Management page first.
             </p>
           </div>
         </div>
@@ -231,10 +329,15 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Knowledge Graph</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Working with {csvData.length} rows and {selectedAttributes.length} attributes
+            Working with {csvData.length} rows and {allAttributes.length} total attributes
           </p>
+          {initialGraphGenerated && (
+            <p className="text-xs text-green-600 mt-1">
+              ✓ Auto-generated graph from {relationships.length} relationships
+            </p>
+          )}
         </div>
-        {graphGenerated && (
+        {(initialGraphGenerated || graphGenerated) && (
           <button
             onClick={exportToSTIX}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
@@ -257,7 +360,7 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
             className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Source Attribute</option>
-            {selectedAttributes.map((attr) => (
+            {allAttributes.map((attr) => (
               <option key={attr} value={attr}>
                 {attr}
               </option>
@@ -287,7 +390,7 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
             className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Target Attribute</option>
-            {selectedAttributes.map((attr) => (
+            {allAttributes.map((attr) => (
               <option key={attr} value={attr}>
                 {attr}
               </option>
@@ -344,16 +447,22 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
         </button>
       </div>
 
-      {graphGenerated && (
+      {(initialGraphGenerated || graphGenerated) && (
         <>
           <div style={cardStyle} className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Graph Visualization
+              {initialGraphGenerated && !graphGenerated ? "Auto-Generated Knowledge Graph" : "Custom Knowledge Graph"}
             </h3>
             <canvas
               ref={canvasRef}
               className="w-full h-96 bg-gray-50 rounded-lg"
             />
+            {initialGraphGenerated && !graphGenerated && (
+              <p className="text-sm text-gray-600 mt-3">
+                This graph was automatically generated based on common threat intelligence patterns. 
+                You can customize it by adding/removing relationships above and clicking "Generate Knowledge Graph".
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -385,7 +494,7 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    {selectedAttributes.map((attr) => (
+                    {allAttributes.map((attr) => (
                       <th key={attr} className="px-4 py-2 text-left text-xs font-semibold text-gray-600">
                         {attr}
                       </th>
@@ -395,7 +504,7 @@ export default function KnowledgeGraph({ selectedAttributes = [], csvData = [] }
                 <tbody>
                   {csvData.slice(0, 10).map((row, rowIndex) => (
                     <tr key={rowIndex} className="border-b border-gray-100">
-                      {selectedAttributes.map((attr) => (
+                      {allAttributes.map((attr) => (
                         <td key={attr} className="px-4 py-2 text-gray-900">
                           {row[attr]}
                         </td>

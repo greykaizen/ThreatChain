@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Shield, Building2, User } from "lucide-react"
 
-export default function Home() {
+export default function LoginPage() {
   const [role, setRole] = useState<"individual" | "organization">("individual")
   const [isLoading, setIsLoading] = useState(false)
 

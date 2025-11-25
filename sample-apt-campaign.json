@@ -1,0 +1,224 @@
+{
+  "type": "bundle",
+  "id": "bundle--f1e2d3c4-b5a6-9788-0011-223344556677",
+  "spec_version": "2.1",
+  "name": "APT29 Espionage Campaign - SolarWinds Supply Chain Attack",
+  "description": "Advanced Persistent Threat campaign attributed to APT29 (Cozy Bear) targeting government and technology sectors through supply chain compromise",
+  "objects": [
+    {
+      "type": "threat-actor",
+      "spec_version": "2.1",
+      "id": "threat-actor--a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "APT29",
+      "description": "Russian state-sponsored threat actor group conducting cyber espionage operations",
+      "threat_actor_types": ["nation-state"],
+      "aliases": ["Cozy Bear", "The Dukes", "NOBELIUM"],
+      "sophistication": "strategic",
+      "resource_level": "government",
+      "primary_motivation": "organizational-gain",
+      "goals": ["Steal sensitive government and corporate data", "Maintain long-term access"]
+    },
+    {
+      "type": "intrusion-set",
+      "spec_version": "2.1",
+      "id": "intrusion-set--b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "SolarWinds Supply Chain Compromise",
+      "description": "Sophisticated supply chain attack compromising SolarWinds Orion platform",
+      "first_seen": "2020-03-01T00:00:00.000Z",
+      "last_seen": "2024-11-25T00:00:00.000Z",
+      "goals": ["Intelligence gathering", "Network persistence"],
+      "resource_level": "government"
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "SUNBURST",
+      "description": "Backdoor malware injected into SolarWinds Orion software updates",
+      "malware_types": ["backdoor", "trojan"],
+      "is_family": false,
+      "capabilities": [
+        "command-and-control",
+        "data-exfiltration",
+        "credential-theft",
+        "lateral-movement",
+        "anti-forensics"
+      ]
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--d4e5f6a7-b8c9-0123-def1-234567890123",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "TEARDROP",
+      "description": "Memory-only dropper used to deploy Cobalt Strike beacon",
+      "malware_types": ["dropper"],
+      "is_family": false,
+      "capabilities": [
+        "memory-resident",
+        "payload-delivery",
+        "evasion"
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--e5f6a7b8-c9d0-1234-ef12-345678901234",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "Supply Chain Compromise",
+      "description": "Manipulation of software supply chain to distribute malicious code",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1195.002",
+          "url": "https://attack.mitre.org/techniques/T1195/002/"
+        }
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--f6a7b8c9-d0e1-2345-f123-456789012345",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "Valid Accounts",
+      "description": "Use of legitimate credentials to maintain access",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1078",
+          "url": "https://attack.mitre.org/techniques/T1078/"
+        }
+      ]
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--a7b8c9d0-e1f2-3456-a123-567890123456",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "SUNBURST DLL Hash",
+      "description": "SHA-256 hash of malicious SolarWinds.Orion.Core.BusinessLayer.dll",
+      "pattern": "[file:hashes.'SHA-256' = 'ce77d116a074dab7a22a0fd4f2c1ab475f16eec42e1ded3c0b0aa8211fe858d6']",
+      "pattern_type": "stix",
+      "valid_from": "2024-11-25T12:00:00.000Z",
+      "indicator_types": ["malicious-activity"]
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--b8c9d0e1-f2a3-4567-b234-678901234567",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "C2 Domain",
+      "description": "Command and control domain used by SUNBURST",
+      "pattern": "[domain-name:value = 'avsvmcloud[.]com']",
+      "pattern_type": "stix",
+      "valid_from": "2024-11-25T12:00:00.000Z",
+      "indicator_types": ["malicious-activity"]
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--c9d0e1f2-a3b4-5678-c345-789012345678",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "Suspicious Registry Key",
+      "description": "Registry key used for persistence",
+      "pattern": "[windows-registry-key:key = 'HKEY_LOCAL_MACHINE\\\\SOFTWARE\\\\SolarWinds\\\\Orion\\\\ReportWatcher']",
+      "pattern_type": "stix",
+      "valid_from": "2024-11-25T12:00:00.000Z",
+      "indicator_types": ["malicious-activity"]
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--d0e1f2a3-b4c5-6789-d456-890123456789",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "Government Sector",
+      "description": "Government agencies targeted in this campaign",
+      "identity_class": "class",
+      "sectors": ["government-national", "government-regional"]
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--e1f2a3b4-c5d6-7890-e567-901234567890",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "Technology Sector",
+      "description": "Technology companies affected by the supply chain compromise",
+      "identity_class": "class",
+      "sectors": ["technology"]
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--f2a3b4c5-d6e7-8901-f678-012345678901",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "name": "Cobalt Strike",
+      "description": "Commercial penetration testing tool used by APT29",
+      "tool_types": ["remote-access"]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a3b4c5d6-e7f8-9012-a789-123456789012",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "relationship_type": "attributed-to",
+      "source_ref": "intrusion-set--b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "target_ref": "threat-actor--a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b4c5d6e7-f8a9-0123-b890-234567890123",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "target_ref": "malware--c3d4e5f6-a7b8-9012-cdef-123456789012"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c5d6e7f8-a9b0-1234-c901-345678901234",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "target_ref": "attack-pattern--e5f6a7b8-c9d0-1234-ef12-345678901234"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d6e7f8a9-b0c1-2345-d012-456789012345",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--a7b8c9d0-e1f2-3456-a123-567890123456",
+      "target_ref": "malware--c3d4e5f6-a7b8-9012-cdef-123456789012"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e7f8a9b0-c1d2-3456-e123-567890123456",
+      "created": "2024-11-25T12:00:00.000Z",
+      "modified": "2024-11-25T12:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "intrusion-set--b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "target_ref": "identity--d0e1f2a3-b4c5-6789-d456-890123456789"
+    }
+  ]
+}

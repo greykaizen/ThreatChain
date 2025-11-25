@@ -271,3 +271,11 @@ generated-threat-data.csv
 sample-threat-data.csv
 test-custom-columns.csv
 test-different-threat-columns.csv
+
+# Backend uploads
+uploads/
+uploads/*
+
+# Database
+*.sql
+*.db
