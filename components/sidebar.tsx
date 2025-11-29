@@ -9,13 +9,12 @@ interface SidebarProps {
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "feeds", label: "Feeds", icon: Database },
-  { id: "graph", label: "Graph", icon: Network },
+  { id: "feeds", label: "Feed Parser", icon: Database },
+  // { id: "graph", label: "Graph", icon: Network }, // Commented - redundant with Feed Parser preview
   { id: "trust", label: "Trust", icon: Shield },
   { id: "blockchain", label: "Blockchain Demo", icon: Blocks },
   { id: "metrics", label: "Blockchain Metrics", icon: Activity },
-  { id: "sharing", label: "Sharing Reports", icon: Share2 },
-  { id: "policy", label: "Policy", icon: FileText },
+  { id: "sharing", label: "Shared Reports", icon: Share2 },
   { id: "clients", label: "Organizations", icon: Users },
 ]
 

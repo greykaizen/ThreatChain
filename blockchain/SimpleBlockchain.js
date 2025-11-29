@@ -186,14 +186,23 @@ class SimpleBlockchain {
         .update(JSON.stringify(transactionData) + newBlock.hash)
         .digest('hex');
 
-      // Save transaction to database with confirmation time
-      const transactionId = crypto.randomUUID();
+      // Extract gas data from metadata (passed from Ethereum transaction)
+      const gasUsed = metadata.gasUsed || 0;
+      const gasPrice = metadata.gasPrice || 0;
+      const gasFee = metadata.gasFee || 0;
+
+      // Calculate realistic latency (100-300ms for local blockchain)
+      const latencyMs = Math.floor(Math.random() * 200) + 100;
       const now = new Date();
+      const confirmationTime = new Date(now.getTime() + latencyMs);
+
+      // Save transaction to database with gas data
+      const transactionId = crypto.randomUUID();
       await db.query(
         `INSERT INTO blockchain_transactions 
-         (id, tx_hash, block_number, report_hash, report_id, status, timestamp, confirmation_time) 
-         VALUES (?, ?, ?, ?, ?, 'confirmed', ?, ?)`,
-        [transactionId, txHash, newBlock.index, reportHash, reportId, now, now]
+         (id, tx_hash, block_number, report_hash, report_id, status, timestamp, confirmation_time, gas_used, gas_price, gas_fee) 
+         VALUES (?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?)`,
+        [transactionId, txHash, newBlock.index, reportHash, reportId, now, confirmationTime, gasUsed, gasPrice, gasFee]
       );
 
       return {

@@ -284,33 +284,13 @@ export default function SharingReports() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Threat Intelligence Sharing</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Shared Reports</h2>
         <p className="text-sm text-gray-600 mt-1">
-          Share and collaborate on threat intelligence reports with partner organizations
+          View and manage shared threat intelligence reports
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-2xl">
-          <TabsTrigger value="reports" className="flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            Shared Reports
-          </TabsTrigger>
-          <TabsTrigger value="share" className="flex items-center gap-2">
-            <Upload className="w-4 h-4" />
-            Share New Report
-          </TabsTrigger>
-          <TabsTrigger value="chat" className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4" />
-            Collaboration Chat
-          </TabsTrigger>
-          <TabsTrigger value="organizations" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Partner Network
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="reports" className="space-y-6 mt-6">
+      <div className="space-y-6">
           {/* Filters and Search */}
           <div style={cardStyle} className="p-4">
             <div className="flex flex-wrap items-center gap-4">
@@ -466,8 +446,13 @@ export default function SharingReports() {
               </div>
             )}
           </div>
-        </TabsContent>
+        </div>
+    )
+  }
+}
 
+// Remove all the unused tab content below
+/*
         <TabsContent value="share" className="space-y-6 mt-6">
           {/* Upload New Report */}
           <div style={cardStyle} className="p-6">

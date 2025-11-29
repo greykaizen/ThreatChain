@@ -99,11 +99,24 @@ class EthereumService {
       const receipt = await tx.wait();
       console.log('   ✅ Confirmed in block:', receipt.blockNumber);
 
+      // Calculate gas fee (gasUsed * gasPrice)
+      const gasUsed = receipt.gasUsed;
+      const gasPrice = receipt.gasPrice || tx.gasPrice || BigInt(0);
+      const gasFeeWei = gasUsed * gasPrice;
+      const gasFeeEth = ethers.formatEther(gasFeeWei);
+      const gasPriceGwei = ethers.formatUnits(gasPrice, 'gwei');
+
+      console.log('   Gas Used:', gasUsed.toString());
+      console.log('   Gas Price:', gasPriceGwei, 'Gwei');
+      console.log('   Gas Fee:', gasFeeEth, 'ETH');
+
       return {
         success: true,
         txHash: receipt.hash,
         blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString(),
+        gasUsed: gasUsed.toString(),
+        gasPrice: parseFloat(gasPriceGwei),
+        gasFee: parseFloat(gasFeeEth),
         timestamp: new Date().toISOString(),
         explorerUrl: `https://sepolia.etherscan.io/tx/${receipt.hash}`
       };

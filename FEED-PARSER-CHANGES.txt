@@ -1,0 +1,83 @@
+FEED PARSER UPGRADE - CHANGES SUMMARY
+=====================================
+
+✅ COMPLETED CHANGES:
+
+1. NEW COMPONENT CREATED
+   - File: components/pages/feed-parser.tsx
+   - Replaces: feed-management.tsx (old file still exists for reference)
+   - Features:
+     * CSV support (existing)
+     * XML support (existing)
+     * XLSX support (NEW!)
+     * Integrated Format Policies tab
+     * Enhanced error handling with detailed messages
+     * "View Format Policies" button on errors
+     * Knowledge Graph Preview (RESTORED!)
+     * Direct STIX 2.1 conversion from preview
+
+2. DASHBOARD UPDATED
+   - File: app/dashboard/page.tsx
+   - Changed: import FeedManagement → import FeedParser
+   - Changed: <FeedManagement /> → <FeedParser />
+   - Removed: PolicyValidation import (functionality merged into FeedParser)
+
+3. SIDEBAR UPDATED
+   - File: components/sidebar.tsx
+   - Changed: "Feeds" → "Feed Parser"
+   - Removed: "Policy" menu item (now integrated in Feed Parser)
+
+4. SAMPLE FILE CREATED
+   - File: sample-threat-data.xlsx
+   - Contains: 10 threat intelligence records
+   - Fields: Threat_ID, Threat_Type, Indicator, Indicator_Type, Severity, 
+             Confidence, First_Seen, Last_Seen, Source, Description, Tags
+
+5. GENERATOR SCRIPT CREATED
+   - File: generate-sample-xlsx.js
+   - Purpose: Generate sample XLSX files for testing
+   - Usage: node generate-sample-xlsx.js
+
+SUPPORTED FORMATS:
+==================
+✓ CSV (.csv)   - Comma-separated values
+✓ XML (.xml)   - Structured XML data  
+✓ XLSX (.xlsx) - Excel spreadsheet (NEW!)
+
+All formats support:
+- Automatic attribute detection
+- Type inference
+- Data preview
+- STIX 2.1 conversion via Knowledge Graph
+
+ERROR HANDLING:
+===============
+4 error types with detailed messages:
+1. Format Error - Unsupported file type
+2. Size Error - File exceeds 50MB limit
+3. Structure Error - Invalid file structure
+4. Content Error - Empty or no valid data
+
+Each error shows:
+- Specific error message
+- List of issues
+- Actionable recommendations
+- "View Format Policies" button
+
+TESTING:
+========
+1. Start the app: npm run dev
+2. Login and go to Dashboard
+3. Click "Feed Parser" in sidebar
+4. Upload sample-threat-data.xlsx
+5. Select attributes
+6. View Knowledge Graph
+7. Convert to STIX 2.1
+
+NOTES:
+======
+- Old feed-management.tsx still exists (can be deleted)
+- Old policy-validation.tsx still exists (can be deleted)
+- XLSX library (xlsx) must be installed: npm install xlsx
+- All existing functionality preserved
+- Backward compatible with CSV and XML files

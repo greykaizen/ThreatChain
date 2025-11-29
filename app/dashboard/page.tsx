@@ -3,13 +3,12 @@
 import { useState } from "react"
 import Sidebar from "@/components/sidebar"
 import DashboardOverview from "@/components/pages/dashboard-overview"
-import FeedManagement from "@/components/pages/feed-management"
+import FeedParser from "@/components/pages/feed-parser"
 import KnowledgeGraph from "@/components/pages/knowledge-graph"
 import TrustProvenance from "@/components/pages/trust-provenance"
 import BlockchainDemo from "@/components/pages/blockchain-demo"
 import BlockchainMetrics from "@/components/pages/blockchain-metrics"
-import SharingReports from "@/components/pages/sharing-reports"
-import PolicyValidation from "@/components/pages/policy-validation"
+import SharedReports from "@/components/pages/shared-reports"
 import Clients from "@/components/pages/clients"
 import Navbar from "@/components/navbar"
 
@@ -29,7 +28,7 @@ export default function DashboardPage() {
       case "dashboard":
         return <DashboardOverview />
       case "feeds":
-        return <FeedManagement onProceedToGraph={handleProceedToGraph} />
+        return <FeedParser onProceedToGraph={handleProceedToGraph} />
       case "graph":
         return <KnowledgeGraph selectedAttributes={selectedAttributes} csvData={csvData} />
       case "trust":
@@ -39,9 +38,7 @@ export default function DashboardPage() {
       case "metrics":
         return <BlockchainMetrics />
       case "sharing":
-        return <SharingReports />
-      case "policy":
-        return <PolicyValidation />
+        return <SharedReports />
       case "clients":
         return <Clients />
       default:

@@ -129,18 +129,33 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       throw dbError; // Re-throw if it's not a duplicate error
     }
 
-    // Submit to local blockchain
+    // Submit to Ethereum first (if enabled) to get real gas data
+    let ethereumResult = null;
+    let gasUsed = 0;
+    let gasPrice = 0;
+    let gasFee = 0;
+
+    if (ethereumService.isEnabled) {
+      ethereumResult = await ethereumService.registerReportHash(reportHash, reportId);
+      
+      // Extract real gas data from Ethereum transaction
+      if (ethereumResult.success && ethereumResult.gasUsed) {
+        gasUsed = parseInt(ethereumResult.gasUsed);
+        // Get gas price from Ethereum (will be 0 on private network)
+        gasPrice = ethereumResult.gasPrice || 0;
+        gasFee = ethereumResult.gasFee || 0;
+      }
+    }
+
+    // Submit to local blockchain with gas data
     const blockchainResult = await blockchain.addSTIXTransaction(reportHash, reportId, {
       fileName: req.file.originalname,
       stixVersion: stixVersion,
-      objectsCount: objectsCount
+      objectsCount: objectsCount,
+      gasUsed: gasUsed,
+      gasPrice: gasPrice,
+      gasFee: gasFee
     });
-
-    // Submit to Ethereum (if enabled)
-    let ethereumResult = null;
-    if (ethereumService.isEnabled) {
-      ethereumResult = await ethereumService.registerReportHash(reportHash, reportId);
-    }
 
     // Create provenance record
     await db.query(
@@ -400,7 +415,24 @@ router.post('/convert', async (req, res) => {
       ]
     );
 
-    // Submit to local blockchain
+    // Submit to Ethereum first (if enabled) to get real gas data
+    let ethereumResult = null;
+    let gasUsed = 0;
+    let gasPrice = 0;
+    let gasFee = 0;
+
+    if (ethereumService.isEnabled) {
+      ethereumResult = await ethereumService.registerReportHash(reportHash, reportId);
+      
+      // Extract real gas data from Ethereum transaction
+      if (ethereumResult.success && ethereumResult.gasUsed) {
+        gasUsed = parseInt(ethereumResult.gasUsed);
+        gasPrice = ethereumResult.gasPrice || 0;
+        gasFee = ethereumResult.gasFee || 0;
+      }
+    }
+
+    // Submit to local blockchain with gas data
     const blockchainResult = await blockchain.addSTIXTransaction(reportHash, reportId, {
       fileName: sourceData.fileName,
       knowledgeGraph: {
@@ -408,14 +440,11 @@ router.post('/convert', async (req, res) => {
         edges: knowledgeGraph.edges.length,
         relationships: knowledgeGraph.relationships.length
       },
-      sourceRows: sourceData.rowCount
+      sourceRows: sourceData.rowCount,
+      gasUsed: gasUsed,
+      gasPrice: gasPrice,
+      gasFee: gasFee
     });
-
-    // Submit to Ethereum (if enabled)
-    let ethereumResult = null;
-    if (ethereumService.isEnabled) {
-      ethereumResult = await ethereumService.registerReportHash(reportHash, reportId);
-    }
 
     // Create provenance record
     await db.query(
