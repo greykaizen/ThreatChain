@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Upload, Hash, Database, CheckCircle2, Clock, AlertCircle, FileText, Shield, ArrowRight, Server, Lock, Network } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -40,6 +40,24 @@ export default function BlockchainDemo() {
   const [blockchainTx, setBlockchainTx] = useState<BlockchainTransaction | null>(null)
   const [offChainRecord, setOffChainRecord] = useState<OffChainRecord | null>(null)
   const [processComplete, setProcessComplete] = useState(false)
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking')
+
+  // Check backend status on mount
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/health')
+        if (response.ok) {
+          setBackendStatus('online')
+        } else {
+          setBackendStatus('offline')
+        }
+      } catch {
+        setBackendStatus('offline')
+      }
+    }
+    checkBackend()
+  }, [])
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -83,16 +101,25 @@ export default function BlockchainDemo() {
       formData.append('title', stixContent.name || stixFile.name.replace('.json', ''))
       formData.append('description', stixContent.description || 'STIX 2.1 Threat Intelligence Report')
 
-      const uploadResponse = await fetch('http://localhost:3001/api/stix/upload', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload report')
+      let uploadResponse
+      try {
+        uploadResponse = await fetch('http://localhost:3001/api/stix/upload', {
+          method: 'POST',
+          body: formData
+        })
+      } catch (fetchError) {
+        throw new Error('Cannot connect to backend server. Make sure it is running on port 3001.')
       }
 
       const uploadData = await uploadResponse.json()
+
+      if (!uploadResponse.ok) {
+        // Handle duplicate reports specifically
+        if (uploadResponse.status === 409) {
+          throw new Error(`Duplicate Report: ${uploadData.message || 'This report already exists in the database'}`)
+        }
+        throw new Error(uploadData.message || uploadData.error || 'Failed to upload report')
+      }
 
       // Step 3: Create Blockchain Transaction Record
       setCurrentStep("Recording on blockchain...")
@@ -133,9 +160,18 @@ export default function BlockchainDemo() {
 
     } catch (error) {
       console.error('Error processing STIX report:', error)
-      setCurrentStep(`Error: ${error instanceof Error ? error.message : 'Failed to process report'}`)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process report'
+      setCurrentStep(`Error: ${errorMessage}`)
       setIsProcessing(false)
-      alert('Failed to process report. Make sure the backend is running on port 3001.')
+      
+      // Show more specific error messages
+      if (errorMessage.includes('Duplicate Report')) {
+        alert(`⚠️ ${errorMessage}\n\nPlease upload a different STIX report or modify the existing one.`)
+      } else if (errorMessage.includes('fetch')) {
+        alert('❌ Cannot connect to backend server.\n\nMake sure the backend is running on port 3001.\n\nRun: npm run backend')
+      } else {
+        alert(`❌ Failed to process report:\n\n${errorMessage}`)
+      }
     }
   }
 
@@ -162,11 +198,31 @@ export default function BlockchainDemo() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Blockchain Provenance Demo</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Upload STIX 2.1 report → Generate hash → Store on blockchain → Record provenance
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Blockchain Provenance Demo</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Upload STIX 2.1 report → Generate hash → Store on blockchain → Record provenance
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
+            backendStatus === 'online' ? 'bg-green-100 text-green-700' :
+            backendStatus === 'offline' ? 'bg-red-100 text-red-700' :
+            'bg-gray-100 text-gray-700'
+          }`}>
+            <div className={`w-2 h-2 rounded-full ${
+              backendStatus === 'online' ? 'bg-green-500 animate-pulse' :
+              backendStatus === 'offline' ? 'bg-red-500' :
+              'bg-gray-400'
+            }`}></div>
+            <span className="font-medium">
+              {backendStatus === 'online' ? 'Backend Online' :
+               backendStatus === 'offline' ? 'Backend Offline' :
+               'Checking...'}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Visual Architecture Diagram */}
@@ -536,12 +592,31 @@ export default function BlockchainDemo() {
       {/* Success Summary */}
       {processComplete && (
         <div style={cardStyle} className="p-6 bg-green-50 border-green-200">
-          <div className="flex items-center gap-3 mb-4">
-            <CheckCircle2 className="w-8 h-8 text-green-600" />
-            <div>
-              <h3 className="text-lg font-semibold text-green-900">Provenance Successfully Recorded!</h3>
-              <p className="text-sm text-green-700">Your STIX report is now immutably stored with blockchain provenance</p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-8 h-8 text-green-600" />
+              <div>
+                <h3 className="text-lg font-semibold text-green-900">Provenance Successfully Recorded!</h3>
+                <p className="text-sm text-green-700">Your STIX report is now immutably stored with blockchain provenance</p>
+              </div>
             </div>
+            <Button
+              onClick={() => {
+                setStixFile(null)
+                setStixContent(null)
+                setReportHash("")
+                setBlockchainTx(null)
+                setOffChainRecord(null)
+                setProcessComplete(false)
+                setProgress(0)
+                setCurrentStep("")
+              }}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              Upload Another Report
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">

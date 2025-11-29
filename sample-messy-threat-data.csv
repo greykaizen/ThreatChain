@@ -1,0 +1,21 @@
+entry_id,observed_time,ioc_data,type_field,risk_level,source_name,description,analyst_notes
+T001,2025-11-27T08:30:00Z,45.142.212.61,suspicious_ip,high,VirusTotal,Botnet C2 server,Confirmed active
+T002,2025-11-27T09:15:00Z,malicious-download.xyz,domain,critical,AlienVault,Malware distribution,Block immediately
+T003,2025-11-27T09:45:00Z,a3f5e8d9c2b1f4e6,hash_md5,medium,Internal Scan,Unknown file,Needs review
+T004,2025-11-27T10:20:00Z,185.220.101.45,ip_address,high,Shodan,Tor exit node,Monitor traffic
+T005,2025-11-27T10:55:00Z,phishing-bank.com,url,critical,User Report,Banking phishing,Active campaign
+T006,2025-11-27T11:30:00Z,7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e,sha256,low,Sandbox,Benign file,False positive
+T007,2025-11-27T12:05:00Z,192.0.2.150,network_addr,medium,Firewall,Scanning activity,Investigate source
+T008,2025-11-27T12:40:00Z,ransomware-pay.onion,onion_site,critical,DarkWeb Monitor,Ransomware payment,Track victims
+T009,2025-11-27T13:15:00Z,trojan.exe,filename,high,EDR Alert,Trojan dropper,Quarantined
+T010,2025-11-27T13:50:00Z,203.0.113.200,external_ip,medium,Threat Feed,Spam source,Rate limit
+T011,2025-11-27T14:25:00Z,credential-stealer.net,hostname,high,DNS Logs,Credential phishing,Block DNS
+T012,2025-11-27T15:00:00Z,b4c5d6e7f8a9b0c1,file_hash,low,AV Scan,Adware detected,Low priority
+T013,2025-11-27T15:35:00Z,10.10.10.50,internal_ip,medium,SIEM,Lateral movement,Isolate host
+T014,2025-11-27T16:10:00Z,exploit-kit.biz,web_domain,critical,Threat Intel,Exploit kit landing,Active threat
+T015,2025-11-27T16:45:00Z,c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6,checksum,medium,File Analysis,Suspicious script,Analyze behavior
+T016,2025-11-27T17:20:00Z,198.18.0.100,test_ip,low,Lab Environment,Test indicator,Ignore
+T017,2025-11-27T17:55:00Z,cryptominer.pool,mining_pool,high,Network Monitor,Cryptomining activity,Block outbound
+T018,2025-11-27T18:30:00Z,d5e6f7a8b9c0d1e2,partial_hash,medium,Incident Response,Incomplete data,Request full hash
+T019,2025-11-27T19:05:00Z,spyware-c2.org,c2_domain,critical,Threat Hunt,Spyware C2,Active infections
+T020,2025-11-27T19:40:00Z,172.31.255.1,private_ip,low,Internal Audit,Misconfiguration,Fix config

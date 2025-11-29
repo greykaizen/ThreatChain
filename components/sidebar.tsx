@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, Database, Network, Shield, FileText, Users, Blocks, Share2 } from "lucide-react"
+import { LayoutDashboard, Database, Network, Shield, FileText, Users, Blocks, Share2, Activity } from "lucide-react"
 
 interface SidebarProps {
   currentPage: string
@@ -13,6 +13,7 @@ const navItems = [
   { id: "graph", label: "Graph", icon: Network },
   { id: "trust", label: "Trust", icon: Shield },
   { id: "blockchain", label: "Blockchain Demo", icon: Blocks },
+  { id: "metrics", label: "Blockchain Metrics", icon: Activity },
   { id: "sharing", label: "Sharing Reports", icon: Share2 },
   { id: "policy", label: "Policy", icon: FileText },
   { id: "clients", label: "Organizations", icon: Users },

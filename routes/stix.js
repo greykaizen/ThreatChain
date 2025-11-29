@@ -62,24 +62,72 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     // Generate unique ID
     const reportId = crypto.randomUUID();
 
-    // Save to database
-    await db.query(
-      `INSERT INTO stix_reports 
-       (id, title, description, content, file_name, file_size, hash, stix_version, report_type, indicators_count) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        reportId,
-        req.body.title || `STIX Report ${Date.now()}`,
-        req.body.description || 'Uploaded STIX report',
-        JSON.stringify(stixContent),
-        req.file.originalname,
-        req.file.size,
-        reportHash,
-        stixVersion,
-        reportType,
-        objectsCount
-      ]
+    // Check if report with this hash already exists
+    const existing = await db.findOne(
+      'SELECT id, title, created_at FROM stix_reports WHERE hash = ?',
+      [reportHash]
     );
+
+    if (existing) {
+      // Clean up the uploaded file since it's a duplicate
+      fs.unlinkSync(req.file.path);
+      
+      return res.status(409).json({
+        success: false,
+        error: 'Duplicate report detected',
+        message: `A report with identical content already exists in the database. Original report "${existing.title}" was uploaded on ${new Date(existing.created_at).toLocaleString()}.`,
+        existingReport: {
+          id: existing.id,
+          title: existing.title,
+          uploadedAt: existing.created_at
+        }
+      });
+    }
+
+    // Save to database with duplicate handling
+    try {
+      await db.query(
+        `INSERT INTO stix_reports 
+         (id, title, description, content, file_name, file_size, hash, stix_version, report_type, indicators_count) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          reportId,
+          req.body.title || `STIX Report ${Date.now()}`,
+          req.body.description || 'Uploaded STIX report',
+          JSON.stringify(stixContent),
+          req.file.originalname,
+          req.file.size,
+          reportHash,
+          stixVersion,
+          reportType,
+          objectsCount
+        ]
+      );
+    } catch (dbError) {
+      // Handle race condition where duplicate was inserted between check and insert
+      if (dbError.code === 'ER_DUP_ENTRY') {
+        // Clean up the uploaded file
+        fs.unlinkSync(req.file.path);
+        
+        // Fetch the existing report details
+        const existing = await db.findOne(
+          'SELECT id, title, created_at FROM stix_reports WHERE hash = ?',
+          [reportHash]
+        );
+        
+        return res.status(409).json({
+          success: false,
+          error: 'Duplicate report detected',
+          message: `A report with identical content already exists in the database. Original report "${existing?.title || 'Unknown'}" was uploaded on ${existing ? new Date(existing.created_at).toLocaleString() : 'unknown date'}.`,
+          existingReport: existing ? {
+            id: existing.id,
+            title: existing.title,
+            uploadedAt: existing.created_at
+          } : null
+        });
+      }
+      throw dbError; // Re-throw if it's not a duplicate error
+    }
 
     // Submit to local blockchain
     const blockchainResult = await blockchain.addSTIXTransaction(reportHash, reportId, {
@@ -312,6 +360,103 @@ router.delete('/reports/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete report',
+      message: error.message
+    });
+  }
+});
+
+// Convert knowledge graph to STIX
+router.post('/convert', async (req, res) => {
+  try {
+    const { stixBundle, knowledgeGraph, sourceData } = req.body;
+
+    if (!stixBundle || !knowledgeGraph) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required data'
+      });
+    }
+
+    // Generate hash for the bundle
+    const reportHash = generateHash(stixBundle);
+    const reportId = crypto.randomUUID();
+
+    // Save to database
+    await db.query(
+      `INSERT INTO stix_reports 
+       (id, title, description, content, file_name, file_size, hash, stix_version, report_type, indicators_count) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        reportId,
+        `Knowledge Graph Export - ${new Date().toLocaleDateString()}`,
+        `Generated from knowledge graph with ${knowledgeGraph.nodes.length} nodes and ${knowledgeGraph.relationships.length} relationships`,
+        JSON.stringify(stixBundle),
+        sourceData.fileName || 'knowledge-graph-export.json',
+        JSON.stringify(stixBundle).length,
+        reportHash,
+        stixBundle.spec_version || '2.1',
+        'bundle',
+        stixBundle.objects ? stixBundle.objects.length : 0
+      ]
+    );
+
+    // Submit to local blockchain
+    const blockchainResult = await blockchain.addSTIXTransaction(reportHash, reportId, {
+      fileName: sourceData.fileName,
+      knowledgeGraph: {
+        nodes: knowledgeGraph.nodes.length,
+        edges: knowledgeGraph.edges.length,
+        relationships: knowledgeGraph.relationships.length
+      },
+      sourceRows: sourceData.rowCount
+    });
+
+    // Submit to Ethereum (if enabled)
+    let ethereumResult = null;
+    if (ethereumService.isEnabled) {
+      ethereumResult = await ethereumService.registerReportHash(reportHash, reportId);
+    }
+
+    // Create provenance record
+    await db.query(
+      `INSERT INTO provenance_records 
+       (id, report_id, blockchain_tx_id, action_type, actor, metadata) 
+       VALUES (?, ?, ?, 'created', 'system', ?)`,
+      [
+        crypto.randomUUID(),
+        reportId,
+        blockchainResult.transactionId,
+        JSON.stringify({ 
+          convertedAt: new Date().toISOString(),
+          knowledgeGraph: knowledgeGraph,
+          ethereumTx: ethereumResult?.txHash || null
+        })
+      ]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        reportId: reportId,
+        reportHash: reportHash,
+        stixVersion: stixBundle.spec_version || '2.1',
+        objectsCount: stixBundle.objects ? stixBundle.objects.length : 0,
+        knowledgeGraph: {
+          nodes: knowledgeGraph.nodes.length,
+          edges: knowledgeGraph.edges.length,
+          relationships: knowledgeGraph.relationships.length
+        },
+        blockchain: blockchainResult,
+        ethereum: ethereumResult
+      },
+      message: 'Knowledge graph converted to STIX and recorded on blockchain',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error converting to STIX:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to convert to STIX',
       message: error.message
     });
   }

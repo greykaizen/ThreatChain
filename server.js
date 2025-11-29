@@ -9,6 +9,7 @@ require('dotenv').config();
 const blockchainRoutes = require('./routes/blockchain');
 const stixRoutes = require('./routes/stix');
 const provenanceRoutes = require('./routes/provenance');
+const metricsRoutes = require('./routes/metrics');
 
 // Import database
 const db = require('./config/database');
@@ -56,6 +57,7 @@ app.use((req, res, next) => {
 app.use('/api/blockchain', blockchainRoutes);
 app.use('/api/stix', stixRoutes);
 app.use('/api/provenance', provenanceRoutes);
+app.use('/api/blockchain/metrics', metricsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -97,6 +99,7 @@ app.listen(PORT, () => {
   console.log(`🔗 Blockchain API: http://localhost:${PORT}/api/blockchain`);
   console.log(`📄 STIX API: http://localhost:${PORT}/api/stix`);
   console.log(`🔒 Provenance API: http://localhost:${PORT}/api/provenance`);
+  console.log(`📈 Metrics API: http://localhost:${PORT}/api/blockchain/metrics`);
 });
 
 module.exports = app;

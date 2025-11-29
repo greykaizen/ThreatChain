@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<threats>
+  <threat>
+    <indicator_type>malware</indicator_type>
+    <indicator_value>WannaCry</indicator_value>
+    <threat_type>ransomware</threat_type>
+    <severity>critical</severity>
+    <confidence>high</confidence>
+    <source>MITRE ATT&amp;CK</source>
+    <first_seen>2017-05-12</first_seen>
+    <last_seen>2024-11-28</last_seen>
+    <description>Ransomware cryptoworm that targets Windows systems</description>
+  </threat>
+  <threat>
+    <indicator_type>ip</indicator_type>
+    <indicator_value>192.168.1.100</indicator_value>
+    <threat_type>c2_server</threat_type>
+    <severity>high</severity>
+    <confidence>medium</confidence>
+    <source>AlienVault OTX</source>
+    <first_seen>2024-10-15</first_seen>
+    <last_seen>2024-11-20</last_seen>
+    <description>Command and control server for malware distribution</description>
+  </threat>
+  <threat>
+    <indicator_type>domain</indicator_type>
+    <indicator_value>malicious-site.com</indicator_value>
+    <threat_type>phishing</threat_type>
+    <severity>medium</severity>
+    <confidence>high</confidence>
+    <source>PhishTank</source>
+    <first_seen>2024-11-01</first_seen>
+    <last_seen>2024-11-25</last_seen>
+    <description>Phishing domain impersonating banking website</description>
+  </threat>
+  <threat>
+    <indicator_type>hash</indicator_type>
+    <indicator_value>5d41402abc4b2a76b9719d911017c592</indicator_value>
+    <threat_type>trojan</threat_type>
+    <severity>high</severity>
+    <confidence>high</confidence>
+    <source>VirusTotal</source>
+    <first_seen>2024-09-20</first_seen>
+    <last_seen>2024-11-15</last_seen>
+    <description>MD5 hash of known trojan malware</description>
+  </threat>
+  <threat>
+    <indicator_type>email</indicator_type>
+    <indicator_value>attacker@evil.com</indicator_value>
+    <threat_type>spam</threat_type>
+    <severity>low</severity>
+    <confidence>medium</confidence>
+    <source>SpamHaus</source>
+    <first_seen>2024-11-10</first_seen>
+    <last_seen>2024-11-28</last_seen>
+    <description>Email address used in spam campaigns</description>
+  </threat>
+  <threat>
+    <indicator_type>url</indicator_type>
+    <indicator_value>http://malware-download.net/payload.exe</indicator_value>
+    <threat_type>malware_distribution</threat_type>
+    <severity>critical</severity>
+    <confidence>high</confidence>
+    <source>URLhaus</source>
+    <first_seen>2024-11-05</first_seen>
+    <last_seen>2024-11-27</last_seen>
+    <description>URL hosting malicious executable files</description>
+  </threat>
+</threats>

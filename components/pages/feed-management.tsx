@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { Upload, ArrowRight, Check, Network, FileText, Database, Settings, Send, Loader2, Globe, Server, CheckCircle2 } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Upload, ArrowRight, Check, Network, FileText, Database, Settings, Send, Loader2, Globe, Server, CheckCircle2, Download } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -112,6 +112,57 @@ export default function FeedManagement({ onProceedToGraph }: FeedManagementProps
     return "string"
   }
 
+  const parseXML = (text: string): any[] => {
+    try {
+      const parser = new DOMParser()
+      const xmlDoc = parser.parseFromString(text, "text/xml")
+      
+      // Check for parsing errors
+      const parserError = xmlDoc.querySelector("parsererror")
+      if (parserError) {
+        console.error("XML parsing error:", parserError.textContent)
+        return []
+      }
+
+      // Find the root element and its children
+      const rootElement = xmlDoc.documentElement
+      const childElements = Array.from(rootElement.children)
+      
+      if (childElements.length === 0) return []
+
+      // Extract data from XML elements
+      const data: any[] = []
+      
+      childElements.forEach((element) => {
+        const row: any = {}
+        
+        // Get all child elements and attributes
+        Array.from(element.children).forEach((child) => {
+          row[child.tagName] = child.textContent || ""
+        })
+        
+        // Also include attributes
+        Array.from(element.attributes).forEach((attr) => {
+          row[attr.name] = attr.value
+        })
+        
+        // If no children, use the element's text content
+        if (Object.keys(row).length === 0 && element.textContent) {
+          row[element.tagName] = element.textContent
+        }
+        
+        if (Object.keys(row).length > 0) {
+          data.push(row)
+        }
+      })
+
+      return data
+    } catch (error) {
+      console.error("Error parsing XML:", error)
+      return []
+    }
+  }
+
   const parseCSV = (text: string): any[] => {
     const lines = text.split("\n").filter((line) => line.trim())
     if (lines.length === 0) return []
@@ -168,7 +219,19 @@ export default function FeedManagement({ onProceedToGraph }: FeedManagementProps
 
     reader.onload = (e) => {
       const text = e.target?.result as string
-      const parsedData = parseCSV(text)
+      const fileExtension = file.name.split('.').pop()?.toLowerCase()
+      
+      let parsedData: any[] = []
+      
+      // Parse based on file type
+      if (fileExtension === 'xml') {
+        parsedData = parseXML(text)
+      } else if (fileExtension === 'csv') {
+        parsedData = parseCSV(text)
+      } else {
+        // Try CSV as default
+        parsedData = parseCSV(text)
+      }
 
       if (parsedData.length > 0) {
         setCsvData(parsedData)
@@ -181,6 +244,8 @@ export default function FeedManagement({ onProceedToGraph }: FeedManagementProps
         }))
         setAttributes(detectedAttributes)
         setStep("attributes")
+      } else {
+        alert(`Failed to parse ${fileExtension?.toUpperCase() || 'file'}. Please check the file format.`)
       }
     }
 
@@ -246,15 +311,15 @@ export default function FeedManagement({ onProceedToGraph }: FeedManagementProps
             <div className="w-20 h-20 rounded-lg bg-blue-50 flex items-center justify-center mb-6">
               <FileText className="w-10 h-10 text-blue-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Upload Your CSV File</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Upload Your Data File</h3>
             <p className="text-sm text-gray-600 mb-6 text-center max-w-md">
-              Upload a CSV file containing threat intelligence data. The system will automatically detect
+              Upload a CSV or XML file containing threat intelligence data. The system will automatically detect
               attributes and their types.
             </p>
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv"
+              accept=".csv,.xml"
               onChange={handleFileUpload}
               className="hidden"
             />
@@ -264,9 +329,9 @@ export default function FeedManagement({ onProceedToGraph }: FeedManagementProps
               style={{ transition: "all 150ms ease" }}
             >
               <Upload className="w-5 h-5" />
-              Select CSV File
+              Select Data File
             </button>
-            <p className="text-xs text-gray-500 mt-4">Supported format: CSV (.csv)</p>
+            <p className="text-xs text-gray-500 mt-4">Supported formats: CSV (.csv), XML (.xml)</p>
           </div>
         </div>
       )}
@@ -303,7 +368,7 @@ export default function FeedManagement({ onProceedToGraph }: FeedManagementProps
                   style={{ transition: "all 150ms ease" }}
                 >
                   <Network className="w-4 h-4" />
-                  Build Knowledge Graph
+                  View Full Knowledge Graph
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -359,6 +424,17 @@ export default function FeedManagement({ onProceedToGraph }: FeedManagementProps
               </div>
               <span className="text-2xl font-bold text-blue-600">{selectedCount}</span>
             </div>
+          </div>
+
+          {/* Knowledge Graph Preview */}
+          <div style={cardStyle} className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Knowledge Graph Preview</h3>
+                <p className="text-sm text-gray-600 mt-1">Auto-generated relationships from your data</p>
+              </div>
+            </div>
+            <KnowledgeGraphPreview attributes={attributes.filter(a => a.selected)} csvData={csvData} />
           </div>
 
           <div style={cardStyle} className="p-6">
@@ -690,6 +766,386 @@ export default function FeedManagement({ onProceedToGraph }: FeedManagementProps
           </Tabs>
         </TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+// Knowledge Graph Preview Component
+function KnowledgeGraphPreview({ attributes, csvData }: { attributes: FeedAttribute[], csvData: any[] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [relationships, setRelationships] = useState<Array<{source: string, target: string, type: string}>>([])
+  const [showConvertDialog, setShowConvertDialog] = useState(false)
+  const [isConverting, setIsConverting] = useState(false)
+
+  useEffect(() => {
+    if (attributes.length < 2 || csvData.length === 0) {
+      setRelationships([])
+      return
+    }
+
+    // Auto-generate relationships based on column names
+    const autoRels: Array<{source: string, target: string, type: string}> = []
+    const attrNames = attributes.map(a => a.name.toLowerCase())
+    const originalNames = attributes.map(a => a.name)
+
+    // Smart pattern matching for common CTI fields
+    const patterns = [
+      // Standard STIX patterns
+      { source: ['indicator_type', 'type', 'type_field', 'ioc_type'], target: ['indicator_value', 'value', 'ioc_data', 'ioc'], type: 'indicates' },
+      { source: ['threat_type', 'threat', 'malware_type'], target: ['indicator_value', 'value', 'ioc_data'], type: 'related_to' },
+      { source: ['threat_type', 'threat', 'type', 'type_field'], target: ['severity', 'risk_level', 'priority', 'confidence'], type: 'has_severity' },
+      { source: ['source', 'source_name', 'reporter', 'feed'], target: ['indicator_value', 'value', 'ioc_data'], type: 'observed_in' },
+      { source: ['category', 'classification'], target: ['value', 'ioc_data', 'indicator_value'], type: 'indicates' },
+      { source: ['description', 'notes', 'analyst_notes'], target: ['value', 'ioc_data', 'indicator_value'], type: 'describes' },
+    ]
+
+    // Try to match patterns
+    patterns.forEach(pattern => {
+      const sourceIdx = attrNames.findIndex(name => pattern.source.some(p => name.includes(p)))
+      const targetIdx = attrNames.findIndex(name => pattern.target.some(p => name.includes(p)))
+      
+      if (sourceIdx !== -1 && targetIdx !== -1 && sourceIdx !== targetIdx) {
+        const rel = { 
+          source: originalNames[sourceIdx], 
+          target: originalNames[targetIdx], 
+          type: pattern.type 
+        }
+        // Avoid duplicates
+        if (!autoRels.some(r => r.source === rel.source && r.target === rel.target)) {
+          autoRels.push(rel)
+        }
+      }
+    })
+
+    // If no smart matches, create relationships based on data types and position
+    if (autoRels.length === 0 && originalNames.length >= 2) {
+      // Find likely indicator column (contains varied data)
+      let indicatorCol = originalNames.find(name => 
+        name.toLowerCase().includes('value') || 
+        name.toLowerCase().includes('ioc') || 
+        name.toLowerCase().includes('indicator')
+      ) || originalNames[1] // Default to second column
+
+      // Create relationships to the indicator column
+      originalNames.forEach((name, idx) => {
+        if (name !== indicatorCol && idx < 4) { // Limit to first 4 columns
+          autoRels.push({ 
+            source: name, 
+            target: indicatorCol, 
+            type: 'related_to' 
+          })
+        }
+      })
+    }
+
+    setRelationships(autoRels)
+    
+    // Delay drawing to ensure canvas is ready
+    setTimeout(() => drawGraph(autoRels), 100)
+  }, [attributes.map(a => a.name).join(','), csvData.length])
+
+  const drawGraph = (rels: Array<{source: string, target: string, type: string}>) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Set canvas size
+    const rect = canvas.getBoundingClientRect()
+    canvas.width = rect.width
+    canvas.height = 400
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Get unique nodes
+    const nodeSet = new Set<string>()
+    rels.forEach(rel => {
+      nodeSet.add(rel.source)
+      nodeSet.add(rel.target)
+    })
+    const nodes = Array.from(nodeSet)
+
+    if (nodes.length === 0) {
+      // Draw empty state
+      ctx.fillStyle = '#9ca3af'
+      ctx.font = '14px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText('No relationships detected', canvas.width / 2, canvas.height / 2)
+      return
+    }
+
+    // Calculate positions - use different layouts based on node count
+    const centerX = canvas.width / 2
+    const centerY = canvas.height / 2
+    const radius = Math.min(canvas.width, canvas.height) / 3
+
+    const nodePositions = new Map<string, { x: number; y: number }>()
+    
+    if (nodes.length <= 3) {
+      // Linear layout for few nodes
+      nodes.forEach((node, i) => {
+        const x = (canvas.width / (nodes.length + 1)) * (i + 1)
+        const y = canvas.height / 2
+        nodePositions.set(node, { x, y })
+      })
+    } else {
+      // Circular layout for many nodes
+      nodes.forEach((node, i) => {
+        const angle = (i / nodes.length) * 2 * Math.PI - Math.PI / 2
+        const x = centerX + radius * Math.cos(angle)
+        const y = centerY + radius * Math.sin(angle)
+        nodePositions.set(node, { x, y })
+      })
+    }
+
+    // Draw edges with arrows
+    ctx.strokeStyle = '#6366f1'
+    ctx.lineWidth = 2
+    rels.forEach(rel => {
+      const source = nodePositions.get(rel.source)
+      const target = nodePositions.get(rel.target)
+      if (source && target) {
+        // Draw line
+        ctx.beginPath()
+        ctx.moveTo(source.x, source.y)
+        ctx.lineTo(target.x, target.y)
+        ctx.stroke()
+
+        // Draw arrow
+        const angle = Math.atan2(target.y - source.y, target.x - source.x)
+        const arrowSize = 10
+        ctx.beginPath()
+        ctx.moveTo(target.x, target.y)
+        ctx.lineTo(
+          target.x - arrowSize * Math.cos(angle - Math.PI / 6),
+          target.y - arrowSize * Math.sin(angle - Math.PI / 6)
+        )
+        ctx.moveTo(target.x, target.y)
+        ctx.lineTo(
+          target.x - arrowSize * Math.cos(angle + Math.PI / 6),
+          target.y - arrowSize * Math.sin(angle + Math.PI / 6)
+        )
+        ctx.stroke()
+
+        // Draw label with background
+        ctx.fillStyle = '#ffffff'
+        ctx.font = '11px sans-serif'
+        const midX = (source.x + target.x) / 2
+        const midY = (source.y + target.y) / 2
+        const textWidth = ctx.measureText(rel.type).width
+        ctx.fillRect(midX - textWidth / 2 - 3, midY - 8, textWidth + 6, 16)
+        ctx.fillStyle = '#6366f1'
+        ctx.textAlign = 'center'
+        ctx.fillText(rel.type, midX, midY + 4)
+      }
+    })
+
+    // Draw nodes with different colors based on role
+    nodes.forEach(node => {
+      const pos = nodePositions.get(node)
+      if (pos) {
+        // Determine node color based on whether it's a source or target
+        const isSource = rels.some(r => r.source === node)
+        const isTarget = rels.some(r => r.target === node)
+        
+        if (isSource && isTarget) {
+          ctx.fillStyle = '#f59e0b' // Orange for both
+        } else if (isSource) {
+          ctx.fillStyle = '#8b5cf6' // Purple for source
+        } else {
+          ctx.fillStyle = '#10b981' // Green for target
+        }
+        
+        // Draw node circle
+        ctx.beginPath()
+        ctx.arc(pos.x, pos.y, 28, 0, 2 * Math.PI)
+        ctx.fill()
+        
+        // Draw white border
+        ctx.strokeStyle = '#ffffff'
+        ctx.lineWidth = 3
+        ctx.stroke()
+
+        // Draw node label below
+        ctx.fillStyle = '#1f2937'
+        ctx.font = 'bold 12px sans-serif'
+        ctx.textAlign = 'center'
+        const label = node.length > 12 ? node.substring(0, 12) + '...' : node
+        ctx.fillText(label, pos.x, pos.y + 45)
+      }
+    })
+  }
+
+  // Redraw when relationships change
+  useEffect(() => {
+    if (relationships.length > 0) {
+      drawGraph(relationships)
+    }
+  }, [relationships])
+
+  const handleConvertToSTIX = async () => {
+    setIsConverting(true)
+    
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    const stixObjects = csvData.map((row, index) => {
+      const indicator: any = {
+        type: "indicator",
+        id: `indicator--${Date.now()}-${index}`,
+        spec_version: "2.1",
+        created: new Date().toISOString(),
+        modified: new Date().toISOString(),
+        pattern_type: "stix",
+        valid_from: new Date().toISOString(),
+      }
+
+      attributes.forEach(attr => {
+        if (row[attr.name]) {
+          indicator[attr.name] = row[attr.name]
+        }
+      })
+
+      if (row.indicator_value || row.value || row.indicator) {
+        const value = row.indicator_value || row.value || row.indicator
+        indicator.pattern = `[network-traffic:src_ref.value = '${value}']`
+        indicator.name = `Indicator: ${value}`
+      } else {
+        indicator.pattern = `[x-custom:value = 'data']`
+        indicator.name = `Indicator ${index + 1}`
+      }
+
+      return indicator
+    })
+
+    const relationshipObjects = relationships.map((rel, index) => ({
+      type: "relationship",
+      id: `relationship--${Date.now()}-${index}`,
+      spec_version: "2.1",
+      created: new Date().toISOString(),
+      modified: new Date().toISOString(),
+      relationship_type: rel.type,
+      source_ref: `x-custom-attribute--${rel.source}`,
+      target_ref: `x-custom-attribute--${rel.target}`,
+    }))
+
+    const stixBundle = {
+      type: "bundle",
+      id: `bundle--${Date.now()}`,
+      spec_version: "2.1",
+      objects: [...stixObjects, ...relationshipObjects],
+    }
+
+    // Download
+    const blob = new Blob([JSON.stringify(stixBundle, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `threat-intel-stix-2.1-${Date.now()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+
+    // Send to backend
+    try {
+      await fetch('http://localhost:3001/api/stix/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stixBundle,
+          knowledgeGraph: { relationships },
+          sourceData: { fileName: 'csv-export', rowCount: csvData.length }
+        })
+      })
+    } catch (error) {
+      console.error('Backend error:', error)
+    }
+
+    setIsConverting(false)
+    setTimeout(() => setShowConvertDialog(false), 2000)
+  }
+
+  if (attributes.length < 2) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <Network className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+        <p className="text-sm">Select at least 2 attributes to generate knowledge graph</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <canvas ref={canvasRef} className="w-full h-[400px] bg-gray-50 rounded-lg mb-4" />
+      
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <p className="text-xs text-gray-600">Nodes</p>
+          <p className="text-2xl font-bold text-blue-600">{new Set([...relationships.map(r => r.source), ...relationships.map(r => r.target)]).size}</p>
+        </div>
+        <div className="p-3 bg-purple-50 rounded-lg">
+          <p className="text-xs text-gray-600">Relationships</p>
+          <p className="text-2xl font-bold text-purple-600">{relationships.length}</p>
+        </div>
+        <div className="p-3 bg-green-50 rounded-lg">
+          <p className="text-xs text-gray-600">Data Rows</p>
+          <p className="text-2xl font-bold text-green-600">{csvData.length}</p>
+        </div>
+      </div>
+
+      <div className="space-y-2 mb-4">
+        {relationships.map((rel, idx) => (
+          <div key={idx} className="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded">
+            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">{rel.source}</span>
+            <span className="text-gray-600">→ {rel.type} →</span>
+            <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">{rel.target}</span>
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={() => setShowConvertDialog(true)}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+      >
+        <Download className="w-4 h-4" />
+        Convert to STIX 2.1 ({csvData.length} indicators)
+      </button>
+
+      {showConvertDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div style={cardStyle} className="max-w-lg w-full mx-4 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              {isConverting ? "Converting..." : "Convert to STIX 2.1?"}
+            </h3>
+            
+            {!isConverting ? (
+              <>
+                <p className="text-sm text-gray-600 mb-4">
+                  This will create {csvData.length} indicators and {relationships.length} relationships
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowConvertDialog(false)}
+                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConvertToSTIX}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    Convert
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-4">
+                <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm text-gray-600">Generating STIX bundle...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

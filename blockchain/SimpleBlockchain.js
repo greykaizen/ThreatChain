@@ -111,26 +111,43 @@ class SimpleBlockchain {
   }
 
   async addBlock(newBlock) {
+    // Reload latest block from database to ensure we have the most recent state
+    const latestBlockFromDB = await db.findOne(
+      'SELECT MAX(block_number) as max_block FROM blockchain_blocks'
+    );
+    
+    const nextBlockNumber = (latestBlockFromDB?.max_block || 0) + 1;
+    newBlock.index = nextBlockNumber;
+    
     newBlock.previousHash = this.getLatestBlock().hash;
     newBlock.mineBlock(this.difficulty);
     
     this.chain.push(newBlock);
 
-    // Save block to database
-    await db.query(
-      `INSERT INTO blockchain_blocks 
-       (block_number, block_hash, previous_hash, merkle_root, nonce, difficulty, transactions_count) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        newBlock.index,
-        newBlock.hash,
-        newBlock.previousHash,
-        newBlock.hash, // Using block hash as merkle root for simplicity
-        newBlock.nonce,
-        this.difficulty,
-        1 // Single transaction per block for simplicity
-      ]
-    );
+    // Save block to database with duplicate protection
+    try {
+      await db.query(
+        `INSERT INTO blockchain_blocks 
+         (block_number, block_hash, previous_hash, merkle_root, nonce, difficulty, transactions_count) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          newBlock.index,
+          newBlock.hash,
+          newBlock.previousHash,
+          newBlock.hash, // Using block hash as merkle root for simplicity
+          newBlock.nonce,
+          this.difficulty,
+          1 // Single transaction per block for simplicity
+        ]
+      );
+    } catch (dbError) {
+      if (dbError.code === 'ER_DUP_ENTRY') {
+        console.error(`⚠️  Block ${newBlock.index} already exists in database. Skipping insertion.`);
+        // Don't throw error, just log it - the block is already in the chain
+        return newBlock;
+      }
+      throw dbError; // Re-throw if it's not a duplicate error
+    }
 
     return newBlock;
   }
@@ -146,9 +163,15 @@ class SimpleBlockchain {
         metadata: metadata
       };
 
+      // Get the next block number from database
+      const latestBlockFromDB = await db.findOne(
+        'SELECT MAX(block_number) as max_block FROM blockchain_blocks'
+      );
+      const nextBlockNumber = (latestBlockFromDB?.max_block || 0) + 1;
+
       // Create new block with transaction
       const newBlock = new Block(
-        this.chain.length,
+        nextBlockNumber,
         Date.now(),
         transactionData,
         this.getLatestBlock().hash
@@ -163,13 +186,14 @@ class SimpleBlockchain {
         .update(JSON.stringify(transactionData) + newBlock.hash)
         .digest('hex');
 
-      // Save transaction to database
+      // Save transaction to database with confirmation time
       const transactionId = crypto.randomUUID();
+      const now = new Date();
       await db.query(
         `INSERT INTO blockchain_transactions 
-         (id, tx_hash, block_number, report_hash, report_id, status, timestamp) 
-         VALUES (?, ?, ?, ?, ?, 'confirmed', NOW())`,
-        [transactionId, txHash, newBlock.index, reportHash, reportId]
+         (id, tx_hash, block_number, report_hash, report_id, status, timestamp, confirmation_time) 
+         VALUES (?, ?, ?, ?, ?, 'confirmed', ?, ?)`,
+        [transactionId, txHash, newBlock.index, reportHash, reportId, now, now]
       );
 
       return {

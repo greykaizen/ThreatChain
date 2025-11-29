@@ -7,6 +7,7 @@ import FeedManagement from "@/components/pages/feed-management"
 import KnowledgeGraph from "@/components/pages/knowledge-graph"
 import TrustProvenance from "@/components/pages/trust-provenance"
 import BlockchainDemo from "@/components/pages/blockchain-demo"
+import BlockchainMetrics from "@/components/pages/blockchain-metrics"
 import SharingReports from "@/components/pages/sharing-reports"
 import PolicyValidation from "@/components/pages/policy-validation"
 import Clients from "@/components/pages/clients"
@@ -35,6 +36,8 @@ export default function DashboardPage() {
         return <TrustProvenance />
       case "blockchain":
         return <BlockchainDemo />
+      case "metrics":
+        return <BlockchainMetrics />
       case "sharing":
         return <SharingReports />
       case "policy":

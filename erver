@@ -1,0 +1,32 @@
+  feature/backend-api                      [m 0f1a6a5 Feature: Backend API only
+  feature/blockchain                       [m 79e4763 Feature: Blockchain integration only
+  feature/blockchain-demo                  [m b57cf2a Feature: Blockchain demo page
+  feature/clients                          [m 3acdea3 Feature: Clients management page
+  feature/dashboard-overview               [m 8d2aa07 Feature: Dashboard overview page
+  feature/feed-management                  [m a0d0334 Feature: Feed management page
+  feature/knowledge-graph                  [m 96a50ae Feature: Knowledge graph visualization
+  feature/login                            [m ccb14f0 Feature: Login page only
+  feature/policy-validation                [m 3632b5b Feature: Policy validation page
+  feature/sharing-reports                  [m 5fad5b3 Feature: Sharing reports page
+  feature/signup                           [m 751428b Feature: Signup page only
+  feature/trust-provenance                 [m 0a0a7eb Feature: Trust and provenance page
+  frontend                                 [m 9176ef4 Save blockchain changes
+* [32mmain                                     [m 9176ef4 Save blockchain changes
+  [31mremotes/origin/HEAD                      [m -> origin/main
+  [31mremotes/origin/blockchain                [m fd59fc2 feat: Add backend server with API routes and database configuration
+  [31mremotes/origin/dashboard                 [m 9db90e6 Update dashboard layout and add theme toggle functionality
+  [31mremotes/origin/feature/backend-api       [m 0f1a6a5 Feature: Backend API only
+  [31mremotes/origin/feature/blockchain        [m 79e4763 Feature: Blockchain integration only
+  [31mremotes/origin/feature/blockchain-demo   [m b57cf2a Feature: Blockchain demo page
+  [31mremotes/origin/feature/clients           [m 3acdea3 Feature: Clients management page
+  [31mremotes/origin/feature/dashboard-overview[m 8d2aa07 Feature: Dashboard overview page
+  [31mremotes/origin/feature/feed-management   [m a0d0334 Feature: Feed management page
+  [31mremotes/origin/feature/knowledge-graph   [m 96a50ae Feature: Knowledge graph visualization
+  [31mremotes/origin/feature/login             [m ccb14f0 Feature: Login page only
+  [31mremotes/origin/feature/policy-validation [m 3632b5b Feature: Policy validation page
+  [31mremotes/origin/feature/sharing-reports   [m 5fad5b3 Feature: Sharing reports page
+  [31mremotes/origin/feature/signup            [m 751428b Feature: Signup page only
+  [31mremotes/origin/feature/trust-provenance  [m 0a0a7eb Feature: Trust and provenance page
+  [31mremotes/origin/greykaizen-patch-1        [m b78bc45 Update README.md
+  [31mremotes/origin/login_page                [m 9db90e6 Update dashboard layout and add theme toggle functionality
+  [31mremotes/origin/main                      [m 9176ef4 Save blockchain changes

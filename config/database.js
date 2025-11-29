@@ -107,6 +107,66 @@ async function initializeTables() {
       )
     `);
 
+    // Create blockchain metrics history table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS blockchain_metrics_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        gas_fee DECIMAL(10,2) DEFAULT 0,
+        tps DECIMAL(10,2) DEFAULT 0,
+        success_rate DECIMAL(5,2) DEFAULT 100,
+        latency INT DEFAULT 0,
+        utilization DECIMAL(5,2) DEFAULT 0,
+        throughput DECIMAL(10,2) DEFAULT 0,
+        cpu_usage DECIMAL(5,2) DEFAULT 0,
+        total_transactions INT DEFAULT 0,
+        confirmed_transactions INT DEFAULT 0,
+        failed_transactions INT DEFAULT 0,
+        latest_block BIGINT DEFAULT 0,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_timestamp (timestamp)
+      )
+    `);
+
+    // Create system metrics table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS system_metrics (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        cpu_usage DECIMAL(5,2) DEFAULT 0,
+        memory_usage DECIMAL(5,2) DEFAULT 0,
+        disk_usage DECIMAL(5,2) DEFAULT 0,
+        network_in BIGINT DEFAULT 0,
+        network_out BIGINT DEFAULT 0,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_timestamp (timestamp)
+      )
+    `);
+
+    // Create network peers table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS network_peers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        peer_id VARCHAR(255) UNIQUE NOT NULL,
+        peer_address VARCHAR(255) NOT NULL,
+        peer_type ENUM('local', 'ethereum', 'external') DEFAULT 'local',
+        status ENUM('connected', 'disconnected') DEFAULT 'connected',
+        last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_status (status),
+        INDEX idx_peer_type (peer_type)
+      )
+    `);
+
+    // Add confirmation_time column if it doesn't exist
+    await connection.execute(`
+      ALTER TABLE blockchain_transactions 
+      ADD COLUMN IF NOT EXISTS confirmation_time TIMESTAMP NULL AFTER timestamp
+    `).catch(() => {}); // Ignore if column already exists
+
+    // Insert local peer if not exists
+    await connection.execute(`
+      INSERT IGNORE INTO network_peers (peer_id, peer_address, peer_type, status)
+      VALUES ('local-node-1', 'localhost:3001', 'local', 'connected')
+    `);
+
     connection.release();
     console.log('✅ Database tables initialized successfully');
     return true;

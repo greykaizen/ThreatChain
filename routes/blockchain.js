@@ -331,4 +331,96 @@ router.get('/health', async (req, res) => {
   }
 });
 
+// ============ ETHEREUM ROUTES ============
+
+const ethereumService = require('../blockchain/EthereumService');
+
+// Get Ethereum status
+router.get('/ethereum/status', async (req, res) => {
+  try {
+    const status = ethereumService.getStatus();
+    const balance = await ethereumService.getBalance();
+    const totalReports = await ethereumService.getTotalReports();
+
+    res.json({
+      success: true,
+      data: {
+        ...status,
+        balance: balance,
+        totalReports: totalReports
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get Ethereum status',
+      message: error.message
+    });
+  }
+});
+
+// Register hash on Ethereum
+router.post('/ethereum/register', async (req, res) => {
+  try {
+    const { reportHash, reportId } = req.body;
+
+    if (!reportHash || !reportId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: reportHash and reportId'
+      });
+    }
+
+    if (!ethereumService.isEnabled) {
+      return res.status(503).json({
+        success: false,
+        error: 'Ethereum integration not enabled'
+      });
+    }
+
+    const result = await ethereumService.registerReportHash(reportHash, reportId);
+
+    res.json({
+      success: result.success,
+      data: result,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to register on Ethereum',
+      message: error.message
+    });
+  }
+});
+
+// Verify hash on Ethereum
+router.get('/ethereum/verify/:reportHash', async (req, res) => {
+  try {
+    const reportHash = req.params.reportHash;
+
+    if (!ethereumService.isEnabled) {
+      return res.status(503).json({
+        success: false,
+        error: 'Ethereum integration not enabled'
+      });
+    }
+
+    const result = await ethereumService.verifyReportHash(reportHash);
+
+    res.json({
+      success: result.success,
+      data: result,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to verify on Ethereum',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
