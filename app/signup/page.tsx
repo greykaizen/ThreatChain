@@ -39,11 +39,61 @@ export default function SignupPage() {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      let endpoint = '';
+      let payload = {};
+
+      if (role === 'individual') {
+        endpoint = 'http://localhost:3001/api/auth/register/individual';
+        payload = {
+          firstName: formData.get('first-name'),
+          lastName: formData.get('last-name'),
+          email: formData.get('email'),
+          phone: formData.get('phone'),
+          password: formData.get('password')
+        };
+      } else {
+        endpoint = 'http://localhost:3001/api/auth/register/organization';
+        payload = {
+          orgName: formData.get('org-name'),
+          adminFirstName: formData.get('org-admin-first'),
+          adminLastName: formData.get('org-admin-last'),
+          email: formData.get('org-email'),
+          phone: formData.get('org-phone'),
+          address: formData.get('org-address'),
+          password: formData.get('org-password')
+        };
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Store token in localStorage
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('userType', role);
+        localStorage.setItem('userEmail', data.data.email);
+        
+        alert('Account created successfully!');
+        window.location.href = "/dashboard";
+      } else {
+        alert(data.error || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      alert('Failed to create account. Please try again.');
+    } finally {
       setIsLoading(false);
-      window.location.href = "/dashboard";
-    }, 1500);
+    }
   };
 
   return (
@@ -92,6 +142,7 @@ export default function SignupPage() {
                     <Label htmlFor="first-name">First Name</Label>
                     <Input
                       id="first-name"
+                      name="first-name"
                       type="text"
                       placeholder="John"
                       required
@@ -101,6 +152,7 @@ export default function SignupPage() {
                     <Label htmlFor="last-name">Last Name</Label>
                     <Input
                       id="last-name"
+                      name="last-name"
                       type="text"
                       placeholder="Doe"
                       required
@@ -114,6 +166,7 @@ export default function SignupPage() {
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="email"
+                      name="email"
                       type="email"
                       placeholder="you@example.com"
                       className="pl-10"
@@ -128,6 +181,7 @@ export default function SignupPage() {
                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="phone"
+                      name="phone"
                       type="tel"
                       placeholder="+1 (555) 000-0000"
                       className="pl-10"
@@ -141,6 +195,7 @@ export default function SignupPage() {
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="password"
+                      name="password"
                       type="password"
                       placeholder="••••••••"
                       className="pl-10"
@@ -155,6 +210,7 @@ export default function SignupPage() {
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="confirm-password"
+                      name="confirm-password"
                       type="password"
                       placeholder="••••••••"
                       className="pl-10"
@@ -203,6 +259,7 @@ export default function SignupPage() {
                     <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="org-name"
+                      name="org-name"
                       type="text"
                       placeholder="Acme Corporation"
                       className="pl-10"
@@ -216,6 +273,7 @@ export default function SignupPage() {
                     <Label htmlFor="org-admin-first">Admin First Name</Label>
                     <Input
                       id="org-admin-first"
+                      name="org-admin-first"
                       type="text"
                       placeholder="Jane"
                       required
@@ -225,6 +283,7 @@ export default function SignupPage() {
                     <Label htmlFor="org-admin-last">Admin Last Name</Label>
                     <Input
                       id="org-admin-last"
+                      name="org-admin-last"
                       type="text"
                       placeholder="Smith"
                       required
@@ -238,6 +297,7 @@ export default function SignupPage() {
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="org-email"
+                      name="org-email"
                       type="email"
                       placeholder="admin@company.com"
                       className="pl-10"
@@ -252,6 +312,7 @@ export default function SignupPage() {
                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="org-phone"
+                      name="org-phone"
                       type="tel"
                       placeholder="+1 (555) 000-0000"
                       className="pl-10"
@@ -266,6 +327,7 @@ export default function SignupPage() {
                     <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="org-address"
+                      name="org-address"
                       type="text"
                       placeholder="123 Business St, City, State"
                       className="pl-10"
@@ -279,6 +341,7 @@ export default function SignupPage() {
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="org-password"
+                      name="org-password"
                       type="password"
                       placeholder="••••••••"
                       className="pl-10"
@@ -293,6 +356,7 @@ export default function SignupPage() {
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="org-confirm-password"
+                      name="org-confirm-password"
                       type="password"
                       placeholder="••••••••"
                       className="pl-10"

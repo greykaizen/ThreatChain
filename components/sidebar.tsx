@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, Database, Network, Shield, FileText, Users, Blocks, Share2, Activity } from "lucide-react"
+import { LayoutDashboard, Database, Network, Shield, FileText, Users, Blocks, Share2, Activity, Server, Globe } from "lucide-react"
 
 interface SidebarProps {
   currentPage: string
@@ -9,13 +9,15 @@ interface SidebarProps {
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "feeds", label: "Feed Parser", icon: Database },
+  { id: "blockchain", label: "Upload Reports", icon: Blocks },
   // { id: "graph", label: "Graph", icon: Network }, // Commented - redundant with Feed Parser preview
-  { id: "trust", label: "Trust", icon: Shield },
-  { id: "blockchain", label: "Blockchain Demo", icon: Blocks },
   { id: "metrics", label: "Blockchain Metrics", icon: Activity },
-  { id: "sharing", label: "Shared Reports", icon: Share2 },
+  { id: "sharing", label: "Threat feed", icon: Share2 },
+  { id: "taxii", label: "TAXII Server", icon: Server },
+  { id: "feeds", label: "Feed Parser", icon: Database },
   { id: "clients", label: "Organizations", icon: Users },
+  { id: "trust", label: "Trust", icon: Shield },
+  { id: "feed-extractor", label: "Feed Extractor", icon: Globe },
 ]
 
 export default function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {

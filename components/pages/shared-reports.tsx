@@ -45,7 +45,17 @@ export default function SharedReports() {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await fetch('http://localhost:3001/api/stix/reports?limit=50')
+      
+      // Get token from localStorage
+      const token = localStorage.getItem('token')
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const response = await fetch('http://localhost:3001/api/stix/reports?limit=50', {
+        headers: headers
+      })
       const data = await response.json()
       
       if (data.success && data.data.reports) {
@@ -86,8 +96,16 @@ export default function SharedReports() {
     if (!confirmed) return
 
     try {
+      // Get token from localStorage
+      const token = localStorage.getItem('token')
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
       const response = await fetch(`http://localhost:3001/api/stix/reports/${reportId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: headers
       })
 
       const data = await response.json()

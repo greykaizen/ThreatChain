@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const blockchain = require('../blockchain/SimpleBlockchain');
+const ethereumService = require('../blockchain/EthereumService');
 const db = require('../config/database');
 
 // Get blockchain statistics
@@ -117,13 +118,20 @@ router.get('/transactions', async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
     const status = req.query.status;
+    const reportId = req.query.reportId;
 
     let whereClause = '';
     let params = [];
 
-    if (status) {
+    if (status && reportId) {
+      whereClause = 'WHERE status = ? AND report_id = ?';
+      params.push(status, reportId);
+    } else if (status) {
       whereClause = 'WHERE status = ?';
       params.push(status);
+    } else if (reportId) {
+      whereClause = 'WHERE report_id = ?';
+      params.push(reportId);
     }
 
     const transactions = await db.query(
@@ -333,7 +341,7 @@ router.get('/health', async (req, res) => {
 
 // ============ ETHEREUM ROUTES ============
 
-const ethereumService = require('../blockchain/EthereumService');
+// const ethereumService = require('../blockchain/EthereumService');
 
 // Get Ethereum status
 router.get('/ethereum/status', async (req, res) => {
@@ -419,6 +427,103 @@ router.get('/ethereum/verify/:reportHash', async (req, res) => {
       success: false,
       error: 'Failed to verify on Ethereum',
       message: error.message
+    });
+  }
+});
+
+// Verify hash against Geth blockchain (manual search method)
+router.post('/verify-hash', async (req, res) => {
+  try {
+    const { hash } = req.body;
+
+    if (!hash) {
+      return res.status(400).json({
+        success: false,
+        error: 'Hash is required'
+      });
+    }
+
+    // Remove 0x prefix if present for comparison
+    const targetHash = hash.startsWith('0x') ? hash.substring(2) : hash;
+
+    console.log('🔍 Manually searching blockchain for hash:', targetHash);
+
+    // Get Geth provider
+    const { ethers } = require('ethers');
+    const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545');
+
+    // Get current block number
+    const currentBlock = await provider.getBlockNumber();
+    console.log('   Searching through', currentBlock, 'blocks...');
+
+    let found = false;
+    let foundData = null;
+
+    // Search through all blocks
+    for (let i = 0; i <= currentBlock; i++) {
+      const block = await provider.getBlock(i);
+      
+      if (block && block.transactions && block.transactions.length > 0) {
+        for (const txHash of block.transactions) {
+          const tx = await provider.getTransaction(txHash);
+          
+          if (tx && tx.data && tx.data.toLowerCase().includes(targetHash.toLowerCase())) {
+            found = true;
+            foundData = {
+              blockNumber: i,
+              blockHash: block.hash,
+              blockTimestamp: block.timestamp,
+              txHash: tx.hash,
+              from: tx.from,
+              to: tx.to,
+              data: tx.data
+            };
+            break;
+          }
+        }
+        
+        if (found) break;
+      }
+    }
+
+    if (found) {
+      console.log('   ✅ Hash found in block', foundData.blockNumber);
+      
+      res.json({
+        success: true,
+        verified: true,
+        data: {
+          exists: true,
+          blockNumber: foundData.blockNumber,
+          blockHash: foundData.blockHash,
+          timestamp: foundData.blockTimestamp.toString(),
+          txHash: foundData.txHash,
+          uploader: foundData.from,
+          blockchainVerified: true
+        },
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      console.log('   ❌ Hash not found in blockchain');
+      
+      res.json({
+        success: true,
+        verified: false,
+        data: {
+          exists: false
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+
+  } catch (error) {
+    console.error('Error verifying hash:', error);
+    res.status(500).json({
+      success: false,
+      verified: false,
+      error: 'Failed to verify hash',
+      message: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });

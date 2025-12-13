@@ -9,6 +9,8 @@ import TrustProvenance from "@/components/pages/trust-provenance"
 import BlockchainDemo from "@/components/pages/blockchain-demo"
 import BlockchainMetrics from "@/components/pages/blockchain-metrics"
 import SharedReports from "@/components/pages/shared-reports"
+import TaxiiServer from "@/components/pages/taxii-server"
+import FeedExtractor from "@/components/pages/feed-extractor"
 import Clients from "@/components/pages/clients"
 import Navbar from "@/components/navbar"
 
@@ -39,6 +41,10 @@ export default function DashboardPage() {
         return <BlockchainMetrics />
       case "sharing":
         return <SharedReports />
+      case "taxii":
+        return <TaxiiServer />
+      case "feed-extractor":
+        return <FeedExtractor />
       case "clients":
         return <Clients />
       default:

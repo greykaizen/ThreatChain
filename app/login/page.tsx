@@ -17,11 +17,53 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const formData = new FormData(e.currentTarget)
+      
+      let endpoint = ''
+      let payload = {}
+
+      if (role === 'individual') {
+        endpoint = 'http://localhost:3001/api/auth/login/individual'
+        payload = {
+          email: formData.get('email'),
+          password: formData.get('password')
+        }
+      } else {
+        endpoint = 'http://localhost:3001/api/auth/login/organization'
+        payload = {
+          email: formData.get('org-email'),
+          password: formData.get('org-password')
+        }
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Store token in localStorage
+        localStorage.setItem('token', data.data.token)
+        localStorage.setItem('userType', role)
+        localStorage.setItem('userEmail', data.data.email)
+        
+        alert('Login successful!')
+        window.location.href = "/dashboard"
+      } else {
+        alert(data.error || 'Login failed')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      alert('Failed to login. Please try again.')
+    } finally {
       setIsLoading(false)
-      window.location.href = "/dashboard"
-    }, 1500)
+    }
   }
 
   return (
@@ -55,6 +97,7 @@ export default function LoginPage() {
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="you@example.com"
                     required
@@ -69,6 +112,7 @@ export default function LoginPage() {
                   </div>
                   <Input
                     id="password"
+                    name="password"
                     type="password"
                     placeholder="••••••••"
                     required
@@ -86,17 +130,9 @@ export default function LoginPage() {
                   <Label htmlFor="org-email">Organization Email</Label>
                   <Input
                     id="org-email"
+                    name="org-email"
                     type="email"
                     placeholder="admin@company.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="org-id">Organization ID</Label>
-                  <Input
-                    id="org-id"
-                    type="text"
-                    placeholder="ORG-12345"
                     required
                   />
                 </div>
@@ -109,6 +145,7 @@ export default function LoginPage() {
                   </div>
                   <Input
                     id="org-password"
+                    name="org-password"
                     type="password"
                     placeholder="••••••••"
                     required

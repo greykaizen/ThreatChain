@@ -1,0 +1,11 @@
+admin.startHTTP("127.0.0.1", 8545)
+// Unlock the funded account
+// Send 100 ETH to your Hardhat account
+eth.sendTransaction({
+  from: "0xB4Be431F3E009B673F2B381372BCb55A784fC76d",
+  to: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  value: web3.toWei(100, "ether")
+})
+// Check new balance
+eth.getBalance("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+miner.start(1)

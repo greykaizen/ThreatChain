@@ -1129,11 +1129,20 @@ export default function KnowledgeGraph({
 
     // Send to backend API
     try {
+      // Get token from localStorage (if user is logged in)
+      const token = localStorage.getItem('token');
+      
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch("http://localhost:3001/api/stix/convert", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: headers,
         body: JSON.stringify({
           stixBundle,
           knowledgeGraph: {

@@ -6,6 +6,7 @@ const blockchain = require('../blockchain/SimpleBlockchain');
 const ethereumService = require('../blockchain/EthereumService');
 const multer = require('multer');
 const path = require('path');
+const { authenticateToken, optionalAuth } = require('../middleware/auth');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -29,7 +30,7 @@ function generateHash(content) {
 }
 
 // Upload and process STIX report
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', authenticateToken, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -84,12 +85,16 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       });
     }
 
+    // Get user/organization info from token
+    const organizationId = req.user.type === 'organization' ? req.user.id : null;
+    const userId = req.user.type === 'user' ? req.user.id : null;
+
     // Save to database with duplicate handling
     try {
       await db.query(
         `INSERT INTO stix_reports 
-         (id, title, description, content, file_name, file_size, hash, stix_version, report_type, indicators_count) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (id, title, description, content, file_name, file_size, hash, stix_version, report_type, indicators_count, organization_id, user_id) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           reportId,
           req.body.title || `STIX Report ${Date.now()}`,
@@ -100,7 +105,9 @@ router.post('/upload', upload.single('file'), async (req, res) => {
           reportHash,
           stixVersion,
           reportType,
-          objectsCount
+          objectsCount,
+          organizationId,
+          userId
         ]
       );
     } catch (dbError) {
@@ -157,18 +164,25 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       gasFee: gasFee
     });
 
-    // Create provenance record
+    // Create provenance record with actor info
+    const actorInfo = req.user.type === 'organization' 
+      ? req.user.orgName 
+      : `${req.user.email}`;
+
     await db.query(
       `INSERT INTO provenance_records 
        (id, report_id, blockchain_tx_id, action_type, actor, metadata) 
-       VALUES (?, ?, ?, 'created', 'system', ?)`,
+       VALUES (?, ?, ?, 'created', ?, ?)`,
       [
         crypto.randomUUID(),
         reportId,
         blockchainResult.transactionId,
+        actorInfo,
         JSON.stringify({ 
           uploadedAt: new Date().toISOString(),
-          ethereumTx: ethereumResult?.txHash || null
+          ethereumTx: ethereumResult?.txHash || null,
+          uploadedBy: req.user.type,
+          uploaderId: req.user.id
         })
       ]
     );
@@ -198,12 +212,13 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 });
 
 // Get all STIX reports
-router.get('/reports', async (req, res) => {
+router.get('/reports', optionalAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
 
+    // Show all reports to everyone (threat intelligence sharing)
     const reports = await db.query(
       `SELECT 
         id,
@@ -216,6 +231,8 @@ router.get('/reports', async (req, res) => {
         report_type,
         severity,
         indicators_count,
+        organization_id,
+        user_id,
         created_at,
         updated_at
       FROM stix_reports 
@@ -223,7 +240,9 @@ router.get('/reports', async (req, res) => {
       LIMIT ${limit} OFFSET ${offset}`
     );
 
-    const totalReports = await db.findOne('SELECT COUNT(*) as count FROM stix_reports');
+    const totalReports = await db.findOne(
+      `SELECT COUNT(*) as count FROM stix_reports`
+    );
 
     res.json({
       success: true,
@@ -249,7 +268,7 @@ router.get('/reports', async (req, res) => {
 });
 
 // Get specific STIX report
-router.get('/reports/:id', async (req, res) => {
+router.get('/reports/:id', optionalAuth, async (req, res) => {
   try {
     const reportId = req.params.id;
 
@@ -264,6 +283,8 @@ router.get('/reports/:id', async (req, res) => {
         error: 'Report not found'
       });
     }
+
+    // Allow everyone to view all reports (threat intelligence sharing)
 
     // Get blockchain transactions for this report
     const transactions = await blockchain.getTransactionsByReportId(reportId);
@@ -346,7 +367,7 @@ router.post('/verify/:id', async (req, res) => {
 });
 
 // Delete STIX report
-router.delete('/reports/:id', async (req, res) => {
+router.delete('/reports/:id', authenticateToken, async (req, res) => {
   try {
     const reportId = req.params.id;
 
@@ -359,6 +380,19 @@ router.delete('/reports/:id', async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Report not found'
+      });
+    }
+
+    // Check ownership
+    const hasAccess = 
+      (req.user.type === 'organization' && report.organization_id === req.user.id) ||
+      (req.user.type === 'user' && report.user_id === req.user.id);
+
+    if (!hasAccess) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied',
+        message: 'You do not have permission to delete this report'
       });
     }
 
@@ -381,7 +415,7 @@ router.delete('/reports/:id', async (req, res) => {
 });
 
 // Convert knowledge graph to STIX
-router.post('/convert', async (req, res) => {
+router.post('/convert', optionalAuth, async (req, res) => {
   try {
     const { stixBundle, knowledgeGraph, sourceData } = req.body;
 
@@ -396,11 +430,15 @@ router.post('/convert', async (req, res) => {
     const reportHash = generateHash(stixBundle);
     const reportId = crypto.randomUUID();
 
+    // Get user/organization info from token (if authenticated)
+    const organizationId = req.user && req.user.type === 'organization' ? req.user.id : 'system-legacy';
+    const userId = req.user && req.user.type === 'user' ? req.user.id : null;
+
     // Save to database
     await db.query(
       `INSERT INTO stix_reports 
-       (id, title, description, content, file_name, file_size, hash, stix_version, report_type, indicators_count) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (id, title, description, content, file_name, file_size, hash, stix_version, report_type, indicators_count, organization_id, user_id) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         reportId,
         `Knowledge Graph Export - ${new Date().toLocaleDateString()}`,
@@ -411,7 +449,9 @@ router.post('/convert', async (req, res) => {
         reportHash,
         stixBundle.spec_version || '2.1',
         'bundle',
-        stixBundle.objects ? stixBundle.objects.length : 0
+        stixBundle.objects ? stixBundle.objects.length : 0,
+        organizationId,
+        userId
       ]
     );
 
@@ -446,19 +486,26 @@ router.post('/convert', async (req, res) => {
       gasFee: gasFee
     });
 
-    // Create provenance record
+    // Create provenance record with actor info
+    const actorInfo = req.user.type === 'organization' 
+      ? req.user.orgName 
+      : `${req.user.email}`;
+
     await db.query(
       `INSERT INTO provenance_records 
        (id, report_id, blockchain_tx_id, action_type, actor, metadata) 
-       VALUES (?, ?, ?, 'created', 'system', ?)`,
+       VALUES (?, ?, ?, 'created', ?, ?)`,
       [
         crypto.randomUUID(),
         reportId,
         blockchainResult.transactionId,
+        actorInfo,
         JSON.stringify({ 
           convertedAt: new Date().toISOString(),
           knowledgeGraph: knowledgeGraph,
-          ethereumTx: ethereumResult?.txHash || null
+          ethereumTx: ethereumResult?.txHash || null,
+          convertedBy: req.user.type,
+          converterId: req.user.id
         })
       ]
     );

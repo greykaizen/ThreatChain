@@ -6,10 +6,14 @@ const path = require('path');
 require('dotenv').config();
 
 // Import routes
+const authRoutes = require('./routes/auth');
 const blockchainRoutes = require('./routes/blockchain');
 const stixRoutes = require('./routes/stix');
 const provenanceRoutes = require('./routes/provenance');
 const metricsRoutes = require('./routes/metrics');
+const taxiiRoutes = require('./routes/taxii');
+const organizationsRoutes = require('./routes/organizations');
+const feedExtractorRoutes = require('./routes/feed-extractor');
 
 // Import database
 const db = require('./config/database');
@@ -54,10 +58,14 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/blockchain', blockchainRoutes);
 app.use('/api/stix', stixRoutes);
 app.use('/api/provenance', provenanceRoutes);
 app.use('/api/blockchain/metrics', metricsRoutes);
+app.use('/api/taxii', taxiiRoutes);
+app.use('/api/organizations', organizationsRoutes);
+app.use('/api/feed-extractor', feedExtractorRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -100,6 +108,7 @@ app.listen(PORT, () => {
   console.log(`📄 STIX API: http://localhost:${PORT}/api/stix`);
   console.log(`🔒 Provenance API: http://localhost:${PORT}/api/provenance`);
   console.log(`📈 Metrics API: http://localhost:${PORT}/api/blockchain/metrics`);
+  console.log(`🌐 TAXII 2.1 Server: http://localhost:${PORT}/api/taxii`);
 });
 
 module.exports = app;

@@ -30,7 +30,8 @@ class EthereumService {
       
       if (useLocalGeth) {
         // Connect to local Geth node
-        this.provider = new ethers.JsonRpcProvider('http://localhost:8545');
+        const rpcUrl = process.env.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545';
+        this.provider = new ethers.JsonRpcProvider(rpcUrl);
         console.log('🔗 Connecting to local Geth node...');
       } else if (process.env.INFURA_API_KEY) {
         // Connect to Sepolia testnet via Infura

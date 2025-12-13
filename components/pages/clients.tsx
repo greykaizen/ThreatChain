@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { Building2, Shield, TrendingUp, Clock, FileText, Users, Globe, Database, AlertTriangle, CheckCircle2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Building2, Shield, TrendingUp, Clock, FileText, Users, Globe, Database, AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface Organization {
-  id: number
+  id: string | number
   name: string
   type: "Government" | "Private" | "Academic" | "NGO"
   country: string
@@ -18,6 +18,7 @@ interface Organization {
   specialization: string[]
   contactPerson: string
   email: string
+  phone?: string
 }
 
 interface ThreatReport {
@@ -42,169 +43,7 @@ interface SharingActivity {
   trustImpact: number
 }
 
-const organizations: Organization[] = [
-  {
-    id: 1,
-    name: "US-CERT",
-    type: "Government",
-    country: "United States",
-    status: "Active",
-    joinDate: "2023-01-15",
-    lastActivity: "2 hours ago",
-    trustScore: 95,
-    reportsShared: 1247,
-    reportsReceived: 892,
-    specialization: ["APT", "Critical Infrastructure", "Government Threats"],
-    contactPerson: "Dr. Sarah Johnson",
-    email: "s.johnson@us-cert.gov"
-  },
-  {
-    id: 2,
-    name: "CrowdStrike Intelligence",
-    type: "Private",
-    country: "United States",
-    status: "Active",
-    joinDate: "2023-02-20",
-    lastActivity: "15 minutes ago",
-    trustScore: 92,
-    reportsShared: 2156,
-    reportsReceived: 1543,
-    specialization: ["Malware Analysis", "Endpoint Security", "Threat Hunting"],
-    contactPerson: "Michael Chen",
-    email: "m.chen@crowdstrike.com"
-  },
-  {
-    id: 3,
-    name: "ENISA",
-    type: "Government",
-    country: "European Union",
-    status: "Active",
-    joinDate: "2023-03-10",
-    lastActivity: "1 day ago",
-    trustScore: 88,
-    reportsShared: 756,
-    reportsReceived: 1234,
-    specialization: ["Policy Analysis", "EU Cybersecurity", "Standards"],
-    contactPerson: "Dr. Elena Rodriguez",
-    email: "e.rodriguez@enisa.europa.eu"
-  },
-  {
-    id: 4,
-    name: "MIT CSAIL",
-    type: "Academic",
-    country: "United States",
-    status: "Active",
-    joinDate: "2023-04-05",
-    lastActivity: "3 hours ago",
-    trustScore: 85,
-    reportsShared: 423,
-    reportsReceived: 678,
-    specialization: ["AI Security", "Research", "Emerging Threats"],
-    contactPerson: "Prof. David Kim",
-    email: "d.kim@mit.edu"
-  },
-  {
-    id: 5,
-    name: "Kaspersky Lab",
-    type: "Private",
-    country: "Russia",
-    status: "Pending",
-    joinDate: "2024-01-10",
-    lastActivity: "5 days ago",
-    trustScore: 72,
-    reportsShared: 89,
-    reportsReceived: 45,
-    specialization: ["Antivirus Research", "Mobile Security", "Industrial Security"],
-    contactPerson: "Alexei Volkov",
-    email: "a.volkov@kaspersky.com"
-  }
-]
 
-const recentReports: ThreatReport[] = [
-  {
-    id: "RPT-2024-001",
-    title: "APT29 Cozy Bear Campaign Analysis",
-    organization: "US-CERT",
-    type: "APT",
-    severity: "Critical",
-    timestamp: "2024-01-15 14:30",
-    indicators: 156,
-    stixVersion: "2.1",
-    verified: true
-  },
-  {
-    id: "RPT-2024-002", 
-    title: "Banking Trojan Emotet Variant",
-    organization: "CrowdStrike Intelligence",
-    type: "Malware",
-    severity: "High",
-    timestamp: "2024-01-15 12:45",
-    indicators: 89,
-    stixVersion: "2.1",
-    verified: true
-  },
-  {
-    id: "RPT-2024-003",
-    title: "Phishing Campaign Targeting EU Banks",
-    organization: "ENISA",
-    type: "Phishing",
-    severity: "Medium",
-    timestamp: "2024-01-14 16:20",
-    indicators: 234,
-    stixVersion: "2.0",
-    verified: false
-  },
-  {
-    id: "RPT-2024-004",
-    title: "Zero-Day Vulnerability in IoT Devices",
-    organization: "MIT CSAIL",
-    type: "Vulnerability",
-    severity: "High",
-    timestamp: "2024-01-14 09:15",
-    indicators: 67,
-    stixVersion: "2.1",
-    verified: true
-  }
-]
-
-const sharingActivity: SharingActivity[] = [
-  {
-    id: "ACT-001",
-    organization: "US-CERT",
-    action: "Shared Report",
-    reportTitle: "APT29 Cozy Bear Campaign Analysis",
-    timestamp: "2024-01-15 14:30",
-    indicators: 156,
-    trustImpact: +2
-  },
-  {
-    id: "ACT-002",
-    organization: "CrowdStrike Intelligence", 
-    action: "Verified Report",
-    reportTitle: "Banking Trojan Emotet Variant",
-    timestamp: "2024-01-15 13:20",
-    indicators: 89,
-    trustImpact: +1
-  },
-  {
-    id: "ACT-003",
-    organization: "ENISA",
-    action: "Received Report",
-    reportTitle: "Phishing Campaign Targeting EU Banks",
-    timestamp: "2024-01-15 11:45",
-    indicators: 234,
-    trustImpact: 0
-  },
-  {
-    id: "ACT-004",
-    organization: "MIT CSAIL",
-    action: "Updated Report",
-    reportTitle: "Zero-Day Vulnerability in IoT Devices",
-    timestamp: "2024-01-15 10:30",
-    indicators: 67,
-    trustImpact: +1
-  }
-]
 
 const cardStyle = {
   backgroundColor: "#ffffff",
@@ -215,6 +54,75 @@ const cardStyle = {
 export default function Organizations() {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null)
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [recentReports, setRecentReports] = useState<ThreatReport[]>([])
+  const [sharingActivity, setSharingActivity] = useState<SharingActivity[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const token = localStorage.getItem('token')
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      // Fetch organizations
+      const orgsRes = await fetch('http://localhost:3001/api/organizations', {
+        headers: headers
+      })
+      const orgsData = await orgsRes.json()
+
+      if (orgsData.success) {
+        setOrganizations(orgsData.data.organizations)
+      }
+
+      // Fetch recent reports
+      const reportsRes = await fetch('http://localhost:3001/api/stix/reports?limit=10', {
+        headers: headers
+      })
+      const reportsData = await reportsRes.json()
+
+      if (reportsData.success && reportsData.data.reports) {
+        const transformedReports: ThreatReport[] = reportsData.data.reports.map((report: any) => ({
+          id: report.id,
+          title: report.title || 'Untitled Report',
+          organization: 'ThreadChain',
+          type: (report.report_type || 'IOC') as any,
+          severity: (report.severity || 'Medium') as any,
+          timestamp: new Date(report.created_at).toLocaleString(),
+          indicators: report.indicators_count || 0,
+          stixVersion: report.stix_version || '2.1',
+          verified: true
+        }))
+        setRecentReports(transformedReports)
+      }
+
+      // Fetch activity
+      const activityRes = await fetch('http://localhost:3001/api/organizations/activity?limit=10', {
+        headers: headers
+      })
+      const activityData = await activityRes.json()
+
+      if (activityData.success) {
+        setSharingActivity(activityData.data.activities)
+      }
+
+    } catch (err) {
+      console.error('Error fetching data:', err)
+      setError('Failed to load organization data')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -268,12 +176,37 @@ export default function Organizations() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Partner Organizations</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Manage threat intelligence sharing partnerships and monitor collaboration activities
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Partner Organizations</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage threat intelligence sharing partnerships and monitor collaboration activities
+          </p>
+        </div>
+        <button
+          onClick={fetchData}
+          disabled={isLoading}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">{error}</p>
+        </div>
+      )}
+
+      {isLoading && organizations.length === 0 ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <RefreshCw className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
+            <p className="text-gray-600">Loading organizations...</p>
+          </div>
+        </div>
+      ) : null}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4 max-w-2xl">
@@ -371,8 +304,15 @@ export default function Organizations() {
         <TabsContent value="organizations" className="space-y-6 mt-6">
           <div style={cardStyle} className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Partner Organizations</h3>
-            <div className="space-y-4">
-              {organizations.map((org) => (
+            {organizations.length === 0 && !isLoading ? (
+              <div className="text-center py-12">
+                <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No organizations found</p>
+                <p className="text-sm text-gray-500 mt-1">Organizations will appear here once they register</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {organizations.map((org) => (
                 <div key={org.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -436,7 +376,8 @@ export default function Organizations() {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </TabsContent>
 

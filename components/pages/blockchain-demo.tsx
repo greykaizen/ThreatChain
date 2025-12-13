@@ -103,8 +103,17 @@ export default function BlockchainDemo() {
 
       let uploadResponse
       try {
+        // Get token from localStorage (if user is logged in)
+        const token = localStorage.getItem('token');
+        
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
         uploadResponse = await fetch('http://localhost:3001/api/stix/upload', {
           method: 'POST',
+          headers: headers,
           body: formData
         })
       } catch (fetchError) {

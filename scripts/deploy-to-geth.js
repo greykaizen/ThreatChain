@@ -11,7 +11,7 @@ async function main() {
   try {
     // Connect to Geth
     console.log('1️⃣  Connecting to Geth...');
-    const provider = new ethers.JsonRpcProvider('http://localhost:8545');
+    const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
     
     // Test connection
     const network = await provider.getNetwork();
