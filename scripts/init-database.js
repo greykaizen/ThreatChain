@@ -3,7 +3,7 @@ require('dotenv').config();
 
 async function initializeDatabase() {
   let connection;
-  
+
   try {
     console.log('🔧 Initializing ThreadChain Database...\n');
 
@@ -39,6 +39,8 @@ async function initializeDatabase() {
         report_type VARCHAR(50),
         severity VARCHAR(20),
         indicators_count INT DEFAULT 0,
+        organization_id VARCHAR(36),
+        user_id VARCHAR(36),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_hash (hash),

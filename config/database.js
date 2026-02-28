@@ -48,10 +48,14 @@ async function initializeTables() {
         report_type VARCHAR(50),
         severity VARCHAR(20),
         indicators_count INT DEFAULT 0,
+        organization_id VARCHAR(36),
+        user_id VARCHAR(36),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_hash (hash),
-        INDEX idx_created_at (created_at)
+        INDEX idx_created_at (created_at),
+        INDEX idx_organization_id (organization_id),
+        INDEX idx_user_id (user_id)
       )
     `);
 
@@ -165,6 +169,62 @@ async function initializeTables() {
     await connection.execute(`
       INSERT IGNORE INTO network_peers (peer_id, peer_address, peer_type, status)
       VALUES ('local-node-1', 'localhost:3001', 'local', 'connected')
+    `);
+
+    // Create reports table (for trust engine)
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS reports (
+        id VARCHAR(36) PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        content LONGTEXT,
+        source VARCHAR(255),
+        confidence INT DEFAULT 50,
+        reputation_score INT DEFAULT 50,
+        quality_score INT DEFAULT 50,
+        behavior_score INT DEFAULT 50,
+        trust_rating DECIMAL(3,2) DEFAULT 0.00,
+        verified BOOLEAN DEFAULT FALSE,
+        is_verified BOOLEAN DEFAULT FALSE,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_source (source),
+        INDEX idx_confidence (confidence),
+        INDEX idx_created_at (created_at)
+      )
+    `);
+
+    // Create stix_indicators table (for trust engine)
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS stix_indicators (
+        id VARCHAR(36) PRIMARY KEY,
+        indicator_type VARCHAR(100),
+        pattern TEXT,
+        valid_from TIMESTAMP,
+        valid_until TIMESTAMP,
+        confidence INT DEFAULT 50,
+        labels JSON,
+        created_by_ref VARCHAR(255),
+        revoked BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create organizations table (for trust engine)
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS organizations (
+        id VARCHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        reputation_score INT DEFAULT 50,
+        trust_rating DECIMAL(3,2) DEFAULT 0.00,
+        verified BOOLEAN DEFAULT FALSE,
+        is_verified BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_name (name)
+      )
     `);
 
     connection.release();

@@ -1,0 +1,108 @@
+{
+  "usage_type": {
+    "type": "label",
+    "classes": [
+      "Commercial",
+      "Content Delivery Network",
+      "Data Center/Web Hosting/Transit",
+      "Fixed Line ISP",
+      "Government",
+      "Mobile ISP",
+      "Unknown",
+      "unknown"
+    ]
+  },
+  "country_code": {
+    "type": "frequency",
+    "mapping": {
+      "US": 792,
+      "SG": 255,
+      "unknown": 255,
+      "CN": 138,
+      "PL": 119,
+      "NL": 87,
+      "DE": 75,
+      "HK": 64,
+      "FR": 51,
+      "JP": 38,
+      "IN": 35,
+      "ES": 31,
+      "CA": 30,
+      "BR": 28,
+      "GB": 25,
+      "IT": 22,
+      "SE": 16,
+      "RU": 10,
+      "KR": 8,
+      "MX": 8,
+      "ID": 7,
+      "LT": 7,
+      "FI": 6,
+      "ZA": 5,
+      "BE": 5,
+      "IE": 3,
+      "NO": 3,
+      "RO": 3,
+      "AU": 3,
+      "DK": 2,
+      "BD": 2,
+      "CH": 2,
+      "IL": 2,
+      "MY": 2,
+      "AE": 2,
+      "CL": 1,
+      "RS": 1,
+      "MA": 1,
+      "AT": 1,
+      "UA": 1,
+      "VE": 1,
+      "ZW": 1,
+      "LI": 1,
+      "NG": 1,
+      "KG": 1,
+      "AR": 1
+    }
+  },
+  "threat_category": {
+    "type": "label",
+    "classes": [
+      "ABUSIVE_ACTOR",
+      "MALICIOUS_BOT",
+      "PROXY_SERVICE",
+      "SCANNER",
+      "UNKNOWN_THREAT",
+      "unknown"
+    ]
+  },
+  "infrastructure_type": {
+    "type": "label",
+    "classes": [
+      "CLOUD",
+      "DATACENTER",
+      "PROXY",
+      "RESIDENTIAL",
+      "UNKNOWN",
+      "unknown"
+    ]
+  },
+  "total_reports_bin": {
+    "type": "label",
+    "classes": [
+      "high",
+      "low",
+      "medium",
+      "very_high",
+      "very_low"
+    ]
+  },
+  "vt_detections_bin": {
+    "type": "label",
+    "classes": [
+      "high",
+      "low",
+      "medium",
+      "very_high",
+      "very_low"
+    ]
+  }
+}

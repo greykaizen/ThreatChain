@@ -14,6 +14,17 @@ const metricsRoutes = require('./routes/metrics');
 const taxiiRoutes = require('./routes/taxii');
 const organizationsRoutes = require('./routes/organizations');
 const feedExtractorRoutes = require('./routes/feed-extractor');
+const trustRoutes = require('./routes/trust');
+
+
+
+
+
+
+
+
+// Import trust engine
+const trustEngine = require('./lib/trust-engine/TrustCalculator');
 
 // Import database
 const db = require('./config/database');
@@ -57,6 +68,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// Initialize trust engine
+trustEngine.initialize()
+  .then(success => {
+    if (success) {
+      console.log('✅ Trust Engine initialized');
+    } else {
+      console.warn('⚠️ Trust Engine initialization failed');
+    }
+  })
+  .catch(err => {
+    console.error('❌ Trust Engine initialization error:', err.message);
+  });
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/blockchain', blockchainRoutes);
@@ -66,6 +90,7 @@ app.use('/api/blockchain/metrics', metricsRoutes);
 app.use('/api/taxii', taxiiRoutes);
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/feed-extractor', feedExtractorRoutes);
+app.use('/api/trust', trustRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -1,0 +1,38 @@
+{
+  "numerical_features": [
+    "total_reports",
+    "vt_detections",
+    "abuse_score",
+    "confidence",
+    "threatfox_iocs",
+    "mitre_confidence",
+    "asshole_score",
+    "classification_confidence",
+    "reports_to_vt_ratio"
+  ],
+  "categorical_features": [
+    "usage_type",
+    "country_code",
+    "threat_category",
+    "infrastructure_type"
+  ],
+  "boolean_features": [
+    "suspicious_isp",
+    "young_domain",
+    "residential_proxy",
+    "verified_identity",
+    "published_ip_ranges",
+    "signal_abuse_reports",
+    "signal_vt_detections",
+    "signal_threatfox",
+    "signal_suspicious_infra",
+    "signal_behavioral",
+    "has_ssl_data",
+    "ssl_port_open"
+  ],
+  "target_features": [
+    "target_abuse_score",
+    "target_confidence",
+    "target_auto_blocked"
+  ]
+}
