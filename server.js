@@ -24,7 +24,8 @@ const trustRoutes = require('./routes/trust');
 
 
 // Import trust engine
-const trustEngine = require('./lib/trust-engine/TrustCalculator');
+const TrustCalculator = require('./lib/trust-engine/TrustCalculator');
+const trustEngine = new TrustCalculator();
 
 // Import database
 const db = require('./config/database');
@@ -68,18 +69,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize trust engine
-trustEngine.initialize()
-  .then(success => {
-    if (success) {
-      console.log('✅ Trust Engine initialized');
-    } else {
-      console.warn('⚠️ Trust Engine initialization failed');
-    }
-  })
-  .catch(err => {
-    console.error('❌ Trust Engine initialization error:', err.message);
-  });
+// Trust engine is ready (no initialization needed)
+console.log('✅ Trust Engine ready');
 
 // Routes
 app.use('/api/auth', authRoutes);

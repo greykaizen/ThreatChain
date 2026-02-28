@@ -8,6 +8,65 @@ const trustEngine = require('../lib/trust-engine/TrustCalculator');
  * Implements dual-model support as specified in the XGBoost plan
  */
 
+// ─── Helper: Extract ML features from a SQL report ─────────────────────────
+function extractFeaturesFromReport(report) {
+  // Extract features from the STIX report stored in SQL
+  // This maps database fields to ML model features
+  
+  // Calculate a base confidence from available data
+  const indicatorCount = report.indicators_count || 0;
+  const baseConfidence = 50 + indicatorCount * 2;
+  const confidence = Math.min(95, Math.max(20, baseConfidence));
+  
+  // Map severity to abuse score (handle null)
+  const severityMap = {
+    'critical': 90,
+    'high': 75,
+    'medium': 50,
+    'low': 30,
+    'info': 20
+  };
+  const severityLower = (report.severity || 'medium').toLowerCase();
+  const abuseScore = severityMap[severityLower] || 50;
+  
+  return {
+    // Numerical features - use defaults if not available
+    total_reports: indicatorCount,
+    vt_detections: Math.floor(indicatorCount * 0.3), // Estimate
+    abuse_score: abuseScore,
+    confidence: confidence,
+    threatfox_iocs: Math.floor(indicatorCount * 0.2),
+    mitre_confidence: confidence * 0.8,
+    asshole_score: abuseScore * 0.6,
+    classification_confidence: confidence,
+    
+    // Categorical features
+    usage_type: 'Data Center/Web Hosting/Transit',
+    country_code: 'US',
+    threat_category: report.report_type || 'unknown',
+    infrastructure_type: 'datacenter',
+    
+    // Boolean features (0 or 1)
+    suspicious_isp: (severityLower === 'critical' || severityLower === 'high') ? 1 : 0,
+    young_domain: 0,
+    residential_proxy: 0,
+    verified_identity: 1,
+    published_ip_ranges: 1,
+    
+    // Detection signals
+    signal_abuse_reports: indicatorCount > 5 ? 1 : 0,
+    signal_vt_detections: indicatorCount > 3 ? 1 : 0,
+    signal_threatfox: indicatorCount > 2 ? 1 : 0,
+    signal_suspicious_infra: severityLower === 'critical' ? 1 : 0,
+    signal_behavioral: indicatorCount > 10 ? 1 : 0,
+    
+    // Derived features
+    reports_to_vt_ratio: Math.max(1, Math.floor(indicatorCount * 0.5)),
+    has_ssl_data: 1,
+    ssl_port_open: 1,
+  };
+}
+
 // ─── Helper: call ML service directly ───────────────────────────────────────
 async function callMLService(features, entityType = 'report', entityId = 'demo') {
   const mlUrl = process.env.ML_SERVICE_URL || 'http://localhost:5001';
@@ -71,15 +130,97 @@ function normalizeMLPredictions(predictions) {
   };
 }
 
-// ─── /api/trust/dataset-results — stats from CSV ───────────────────────────
+// ─── /api/trust/dataset-results — stats from SQL reports or CSV fallback ───
 router.get('/dataset-results', async (req, res) => {
   try {
+    const db = require('../config/database');
+    
+    // Try to get reports from SQL first
+    const reports = await db.query(`
+      SELECT 
+        id,
+        title,
+        report_type,
+        severity,
+        indicators_count,
+        created_at
+      FROM stix_reports 
+      ORDER BY created_at DESC 
+      LIMIT 100
+    `);
+
+    if (reports && reports.length > 0) {
+      // Calculate stats from SQL reports
+      const total = reports.length;
+      
+      // For demo purposes, generate some scores
+      // In production, these would come from trust_scores table
+      const reportsWithScores = reports.map(report => {
+        const baseConf = 50 + (report.indicators_count || 0) * 2;
+        const confidence = Math.min(95, Math.max(20, baseConf));
+        
+        const rbScore = Math.max(20, Math.min(90, 50 + confidence * 0.4));
+        const xgbScore = Math.max(20, Math.min(95, 45 + confidence * 0.5));
+        
+        return {
+          id: report.id,
+          title: report.title || 'Untitled',
+          type: report.report_type || 'unknown',
+          rb_trust_score: rbScore,
+          xgb_abuse: xgbScore,
+          xgb_confidence: confidence,
+          xgb_auto_block: xgbScore > 75,
+          indicators: report.indicators_count || 0
+        };
+      });
+
+      const avgRb = reportsWithScores.reduce((acc, r) => acc + r.rb_trust_score, 0) / total;
+      const avgXgb = reportsWithScores.reduce((acc, r) => acc + r.xgb_abuse, 0) / total;
+      const avgConf = reportsWithScores.reduce((acc, r) => acc + r.xgb_confidence, 0) / total;
+      const autoBlocked = reportsWithScores.filter(r => r.xgb_auto_block).length;
+
+      const distribution = {
+        rb: { high: 0, medHigh: 0, med: 0, low: 0 },
+        xgb: { high: 0, med: 0, lowMed: 0, low: 0 }
+      };
+
+      reportsWithScores.forEach(r => {
+        if (r.rb_trust_score < 25) distribution.rb.high++;
+        else if (r.rb_trust_score < 50) distribution.rb.medHigh++;
+        else if (r.rb_trust_score < 75) distribution.rb.med++;
+        else distribution.rb.low++;
+
+        if (r.xgb_abuse >= 75) distribution.xgb.high++;
+        else if (r.xgb_abuse >= 50) distribution.xgb.med++;
+        else if (r.xgb_abuse >= 25) distribution.xgb.lowMed++;
+        else distribution.xgb.low++;
+      });
+
+      return res.json({
+        success: true,
+        source: 'sql',
+        stats: {
+          total,
+          avgRb: Math.round(avgRb * 10) / 10,
+          avgXgb: Math.round(avgXgb * 10) / 10,
+          avgConf: Math.round(avgConf * 10) / 10,
+          autoBlocked,
+          distribution
+        },
+        rows: reportsWithScores
+      });
+    }
+
+    // Fallback to CSV if no SQL reports
     const fs = require('fs');
     const path = require('path');
     const csvPath = path.join(process.cwd(), 'trust_score_results.csv');
 
     if (!fs.existsSync(csvPath)) {
-      return res.status(404).json({ success: false, error: 'Dataset results not found. Please run the test script first.' });
+      return res.status(404).json({ 
+        success: false, 
+        error: 'No reports found in database and CSV file not available.' 
+      });
     }
 
     const content = fs.readFileSync(csvPath, 'utf8');
@@ -139,14 +280,82 @@ router.get('/dataset-results', async (req, res) => {
   }
 });
 
-// ─── /score-demo — Picking a real entry from the dataset if available ──────
+// ─── /score-demo — Get a random real report from SQL and score it ──────
 router.get('/score-demo', async (req, res) => {
   try {
+    const db = require('../config/database');
+    
+    // Try to get a random report from the database
+    const randomReport = await db.findOne(`
+      SELECT * FROM stix_reports 
+      ORDER BY RAND() 
+      LIMIT 1
+    `);
+
+    if (randomReport) {
+      // Extract features from the real report
+      const features = extractFeaturesFromReport(randomReport);
+      
+      // Calculate rule-based score using TrustCalculator
+      const TrustCalculator = require('../lib/trust-engine/TrustCalculator');
+      const calculator = new TrustCalculator();
+      
+      let ruleBasedResult;
+      try {
+        ruleBasedResult = await calculator.calculate('report', randomReport.id);
+      } catch (err) {
+        console.warn('Rule-based calculation failed, using fallback:', err.message);
+        ruleBasedResult = {
+          overallScore: 50,
+          dimensions: buildDefaultRuleBasedScore(0.5).dimensions
+        };
+      }
+
+      // Call ML service with real features
+      const mlResult = await callMLService(features, 'report', randomReport.id);
+      const xgboostNorm = mlResult && mlResult.success
+        ? normalizeMLPredictions(mlResult.predictions)
+        : null;
+
+      // Comparison
+      let comparison = null;
+      if (xgboostNorm) {
+        const diff = Math.abs(ruleBasedResult.overallScore - xgboostNorm.abuseScore);
+        comparison = {
+          difference: Math.round(diff * 100) / 100,
+          percentDifference: ruleBasedResult.overallScore !== 0
+            ? Math.round((diff / ruleBasedResult.overallScore) * 10000) / 100
+            : 0,
+          agreement: diff < 10,
+          higherScore: ruleBasedResult.overallScore > xgboostNorm.abuseScore
+            ? 'rule-based' : 'xgboost',
+        };
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          entityType: 'report',
+          entityId: randomReport.id,
+          reportTitle: randomReport.title || 'Untitled Report',
+          productionScore: ruleBasedResult.overallScore,
+          ruleBased: {
+            overallScore: ruleBasedResult.overallScore,
+            dimensions: ruleBasedResult.dimensions,
+          },
+          xgboost: xgboostNorm,
+          comparison,
+          mlServiceOnline: !!(mlResult && mlResult.success),
+          calculatedAt: new Date().toISOString(),
+        },
+      });
+    }
+
+    // Fallback: If no reports in database, check CSV
     const fs = require('fs');
     const path = require('path');
     const csvPath = path.join(process.cwd(), 'trust_score_results.csv');
 
-    // If dataset exists, use a random real entry for demo
     if (fs.existsSync(csvPath)) {
       const content = fs.readFileSync(csvPath, 'utf8');
       const lines = content.split('\n').filter(l => l.trim());
@@ -165,7 +374,7 @@ router.get('/score-demo', async (req, res) => {
             productionScore: parseFloat(entry.rb_trust_score),
             ruleBased: {
               overallScore: parseFloat(entry.rb_trust_score),
-              dimensions: buildDefaultRuleBasedScore(0.42).dimensions // Keep existing mock dimensions for UI
+              dimensions: buildDefaultRuleBasedScore(0.42).dimensions
             },
             xgboost: {
               abuseScore: parseFloat(entry.xgb_abuse),

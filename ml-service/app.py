@@ -81,12 +81,14 @@ def load_models():
             print("⚠️  Confidence model not found")
         
         # Load scaler if it exists
-        scaler_path = './models/scaler.pkl'
+        if scaler_path is None:
+            scaler_path = './models/scaler.pkl'
+            
         if os.path.exists(scaler_path):
             scaler = joblib.load(scaler_path)
             print("✅ Loaded scaler")
         else:
-            print("⚠️  Scaler not found")
+            print("⚠️  Scaler not found, predictions may be less accurate")
         
         print("✅ All models loaded successfully!")
         
