@@ -77,17 +77,6 @@
           "phase_name": "initial-access"
         }
       ]
-    },
-    {
-      "type": "identity",
-      "id": "identity--51234567-89ab-cdef-0123-456789abcdef",
-      "spec_version": "2.1",
-      "created": "2024-01-15T10:00:00.000Z",
-      "modified": "2024-01-15T10:00:00.000Z",
-      "name": "ThreadChain CTI Platform",
-      "description": "Cyber Threat Intelligence Platform",
-      "identity_class": "organization",
-      "sectors": ["technology"]
     }
   ]
 }

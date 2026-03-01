@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +31,8 @@ export default function SignupPage() {
   const [role, setRole] = useState<"individual" | "organization">("individual");
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -77,16 +81,14 @@ export default function SignupPage() {
 
       const data = await response.json();
 
-      if (data.success) {
-        // Store token in localStorage
-        localStorage.setItem('token', data.data.token);
-        localStorage.setItem('userType', role);
-        localStorage.setItem('userEmail', data.data.email);
+      if (response.ok && data.success) {
+        // Use auth context to handle login
+        login(data.data.token, role, data.data.email);
         
         alert('Account created successfully!');
-        window.location.href = "/dashboard";
+        router.push("/dashboard");
       } else {
-        alert(data.error || 'Registration failed');
+        alert(data.error || 'Registration failed. Please check your information.');
       }
     } catch (error) {
       console.error('Registration error:', error);

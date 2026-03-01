@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/app/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,6 +14,8 @@ import { Shield, Building2, User } from "lucide-react"
 export default function LoginPage() {
   const [role, setRole] = useState<"individual" | "organization">("individual")
   const [isLoading, setIsLoading] = useState(false)
+  const { login, clearAuthOnly } = useAuth()
+  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -47,19 +51,21 @@ export default function LoginPage() {
 
       const data = await response.json()
 
-      if (data.success) {
-        // Store token in localStorage
-        localStorage.setItem('token', data.data.token)
-        localStorage.setItem('userType', role)
-        localStorage.setItem('userEmail', data.data.email)
+      if (response.ok && data.success && data.data && data.data.token) {
+        // Use auth context to handle login
+        login(data.data.token, role, data.data.email)
         
         alert('Login successful!')
-        window.location.href = "/dashboard"
+        router.push("/dashboard")
       } else {
-        alert(data.error || 'Login failed')
+        // Clear any existing auth on failed login
+        clearAuthOnly()
+        alert(data.error || 'Invalid credentials. Please try again.')
       }
     } catch (error) {
       console.error('Login error:', error)
+      // Clear any existing auth on error
+      clearAuthOnly()
       alert('Failed to login. Please try again.')
     } finally {
       setIsLoading(false)

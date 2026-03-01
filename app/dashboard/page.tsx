@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import ProtectedRoute from "@/components/ProtectedRoute"
 import Sidebar from "@/components/sidebar"
 import DashboardOverview from "@/components/pages/dashboard-overview"
 import FeedParser from "@/components/pages/feed-parser"
@@ -53,12 +54,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar />
-        <main className="flex-1 overflow-auto bg-background">{renderPage()}</main>
+    <ProtectedRoute>
+      <div className="flex h-screen bg-background">
+        <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar />
+          <main className="flex-1 overflow-auto bg-background">{renderPage()}</main>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   )
 }
