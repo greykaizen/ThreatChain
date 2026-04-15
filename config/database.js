@@ -69,6 +69,8 @@ async function initializeTables() {
         report_id VARCHAR(36),
         status ENUM('pending', 'confirmed', 'failed') DEFAULT 'pending',
         gas_used BIGINT,
+        gas_price DECIMAL(20,8) DEFAULT 0,
+        gas_fee DECIMAL(20,8) DEFAULT 0,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         confirmation_time TIMESTAMP NULL,
         FOREIGN KEY (report_id) REFERENCES stix_reports(id) ON DELETE CASCADE,
@@ -159,11 +161,27 @@ async function initializeTables() {
       )
     `);
 
-    // Add confirmation_time column if it doesn't exist
-    await connection.execute(`
-      ALTER TABLE blockchain_transactions 
-      ADD COLUMN IF NOT EXISTS confirmation_time TIMESTAMP NULL AFTER timestamp
-    `).catch(() => {}); // Ignore if column already exists
+    // Safely add missing columns to blockchain_transactions using information_schema
+    const dbName = process.env.DB_NAME || 'threadchain_db';
+    const columnsToAdd = [
+      { name: 'confirmation_time', definition: 'TIMESTAMP NULL' },
+      { name: 'gas_price',         definition: 'DECIMAL(20,8) DEFAULT 0' },
+      { name: 'gas_fee',           definition: 'DECIMAL(20,8) DEFAULT 0' },
+    ];
+
+    for (const col of columnsToAdd) {
+      const [rows] = await connection.execute(
+        `SELECT COLUMN_NAME FROM information_schema.COLUMNS 
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'blockchain_transactions' AND COLUMN_NAME = ?`,
+        [dbName, col.name]
+      );
+      if (rows.length === 0) {
+        await connection.execute(
+          `ALTER TABLE blockchain_transactions ADD COLUMN ${col.name} ${col.definition}`
+        );
+        console.log(`✅ Added column '${col.name}' to blockchain_transactions`);
+      }
+    }
 
     // Insert local peer if not exists
     await connection.execute(`
@@ -211,19 +229,49 @@ async function initializeTables() {
       )
     `);
 
-    // Create organizations table (for trust engine)
+    // Create organizations table (auth + trust engine)
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS organizations (
         id VARCHAR(36) PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
+        name VARCHAR(255),
+        org_name VARCHAR(255),
+        admin_first_name VARCHAR(100),
+        admin_last_name VARCHAR(100),
+        email VARCHAR(255) UNIQUE,
+        phone VARCHAR(50),
+        address TEXT,
+        password_hash VARCHAR(255),
+        api_key VARCHAR(64),
         description TEXT,
         reputation_score INT DEFAULT 50,
         trust_rating DECIMAL(3,2) DEFAULT 0.00,
         verified BOOLEAN DEFAULT FALSE,
         is_verified BOOLEAN DEFAULT FALSE,
+        status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX idx_name (name)
+        INDEX idx_name (name),
+        INDEX idx_email (email)
+      )
+    `);
+
+    // Create users table (for individual auth)
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(36) PRIMARY KEY,
+        organization_id VARCHAR(36),
+        first_name VARCHAR(100) NOT NULL,
+        last_name VARCHAR(100) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        phone VARCHAR(50),
+        password_hash VARCHAR(255) NOT NULL,
+        role ENUM('individual', 'admin', 'analyst', 'viewer') DEFAULT 'individual',
+        status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_email (email),
+        INDEX idx_role (role),
+        INDEX idx_organization_id (organization_id)
       )
     `);
 

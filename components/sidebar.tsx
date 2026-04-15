@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, Database, Network, Shield, FileText, Users, Blocks, Share2, Activity, Server, Globe } from "lucide-react"
+import { LayoutDashboard, Database, Network, Shield, FileText, Users, Blocks, Share2, Activity, Server, Globe, BrainCircuit } from "lucide-react"
 
 interface SidebarProps {
   currentPage: string
@@ -18,6 +18,7 @@ const navItems = [
   { id: "clients", label: "Organizations", icon: Users },
   { id: "trust", label: "Trust", icon: Shield },
   { id: "feed-extractor", label: "Feed Extractor", icon: Globe },
+  { id: "rag", label: "AI Assistant", icon: BrainCircuit },
 ]
 
 export default function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {

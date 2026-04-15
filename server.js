@@ -15,6 +15,7 @@ const taxiiRoutes = require('./routes/taxii');
 const organizationsRoutes = require('./routes/organizations');
 const feedExtractorRoutes = require('./routes/feed-extractor');
 const trustRoutes = require('./routes/trust');
+const ragRoutes = require('./routes/rag');
 
 
 
@@ -82,6 +83,7 @@ app.use('/api/taxii', taxiiRoutes);
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/feed-extractor', feedExtractorRoutes);
 app.use('/api/trust', trustRoutes);
+app.use('/api/rag', ragRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

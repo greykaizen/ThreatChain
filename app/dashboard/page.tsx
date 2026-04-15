@@ -13,6 +13,7 @@ import SharedReports from "@/components/pages/shared-reports"
 import TaxiiServer from "@/components/pages/taxii-server"
 import FeedExtractor from "@/components/pages/feed-extractor"
 import Clients from "@/components/pages/clients"
+import RagAssistant from "@/components/pages/rag-assistant"
 import Navbar from "@/components/navbar"
 
 export default function DashboardPage() {
@@ -48,6 +49,8 @@ export default function DashboardPage() {
         return <FeedExtractor />
       case "clients":
         return <Clients />
+      case "rag":
+        return <RagAssistant />
       default:
         return <DashboardOverview />
     }
