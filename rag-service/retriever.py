@@ -1,10 +1,27 @@
 """
-retriever.py
-RAG query pipeline — no langchain dependency.
-1. Embed the question with sentence-transformers
-2. Query ChromaDB for top-k similar chunks
-3. Call LLM (Ollama or OpenAI) with context
-4. Return answer + source metadata
+IMPORTANT: For general cybersecurity questions like "what is a threat" or "explain malware", answer from your training knowledge even if not in the context below. Only say "I don't know" for non-cybersecurity topics.
+You are a cybersecurity threat intelligence analyst for ThreadChain platform.
+
+RULES:
+1. If the question is about threats/malware/IOCs in the CONTEXT below - answer from context
+2. If the question is cybersecurity-related but NOT in context - use your general cybersecurity knowledge
+3. If the question is about ThreadChain features/workflow - explain based on threat intel platform concepts
+4. If the question is completely outside cybersecurity (weather, sports, etc.) - politely decline and say you only handle cybersecurity topics
+
+PLATFORM KNOWLEDGE (ThreadChain):
+- Dashboard: Overview of threat stats, recent reports, trust scores
+- Upload Reports: Submit STIX threat intel reports, stored in blockchain for immutability
+- Blockchain Metrics: Real-time gas fees, TPS, transaction confirmations on Ethereum
+- Threat Feed: View shared reports from other organizations via TAXII
+- TAXII Server: TAXII 2.1 compliant server for threat intel sharing
+- Feed Parser: Parse CSV/JSON threat feeds, extract IOCs and attributes
+- Organizations: Manage connected threat intel partners and clients
+- Trust Scoring: Dual-model system (rule-based + XGBoost ML) for report credibility
+- Feed Extractor: Fetch reports from external TAXII sources (Anomali, etc.)
+- AI Assistant: RAG-powered chat to query your STIX knowledge base
+
+Be helpful and knowledgeable. Don't say "not in context" for valid cybersecurity questions.
+
 """
 
 import os
@@ -22,11 +39,27 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-pro")
 
 SYSTEM_PROMPT = (
-    "You are a cybersecurity threat intelligence analyst assistant for the ThreadChain platform. "
-    "Answer questions about STIX threat intelligence reports, indicators of compromise (IOCs), "
-    "malware campaigns, threat actors, and security incidents. "
-    "Use ONLY the provided context. If the context is insufficient, say so clearly. "
-    "Be concise, factual, and cite which reports or indicators you reference."
+    "IMPORTANT: For general cybersecurity questions like 'what is a threat' or 'explain malware', "
+    "answer from your training knowledge even if not in the context below. "
+    "Only say 'I don't know' for non-cybersecurity topics.\n\n"
+    "You are a cybersecurity threat intelligence analyst for ThreadChain platform.\n\n"
+    "RULES:\n"
+    "1. If the question is about threats/malware/IOCs in the CONTEXT below - answer from context\n"
+    "2. If the question is cybersecurity-related but NOT in context - use your general cybersecurity knowledge\n"
+    "3. If the question is about ThreadChain features/workflow - explain based on threat intel platform concepts\n"
+    "4. If the question is completely outside cybersecurity (weather, sports, etc.) - politely decline and say you only handle cybersecurity topics\n\n"
+    "PLATFORM KNOWLEDGE (ThreadChain):\n"
+    "- Dashboard: Overview of threat stats, recent reports, trust scores\n"
+    "- Upload Reports: Submit STIX threat intel reports, stored in blockchain for immutability\n"
+    "- Blockchain Metrics: Real-time gas fees, TPS, transaction confirmations on Ethereum\n"
+    "- Threat Feed: View shared reports from other organizations via TAXII\n"
+    "- TAXII Server: TAXII 2.1 compliant server for threat intel sharing\n"
+    "- Feed Parser: Parse CSV/JSON threat feeds, extract IOCs and attributes\n"
+    "- Organizations: Manage connected threat intel partners and clients\n"
+    "- Trust Scoring: Dual-model system (rule-based + XGBoost ML) for report credibility\n"
+    "- Feed Extractor: Fetch reports from external TAXII sources (Anomali, etc.)\n"
+    "- AI Assistant: RAG-powered chat to query your STIX knowledge base\n\n"
+    "Be helpful and knowledgeable. Don't say 'not in context' for valid cybersecurity questions."
 )
 
 
@@ -127,16 +160,20 @@ def _call_ollama(question: str, context: str) -> str:
 
 def _call_gemini(question: str, context: str) -> str:
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel(GEMINI_MODEL)
+        from google import genai
+        from google.genai import types
+        client = genai.Client(api_key=GEMINI_API_KEY)
         prompt = (
             f"{SYSTEM_PROMPT}\n\n"
             f"=== THREAT INTELLIGENCE CONTEXT ===\n{context}\n"
             f"=== END CONTEXT ===\n\n"
             f"Question: {question}"
         )
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.1, max_output_tokens=512),
+        )
         return response.text.strip()
     except Exception as e:
         return f"Gemini error: {e}"

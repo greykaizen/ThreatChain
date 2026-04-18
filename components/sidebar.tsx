@@ -17,7 +17,7 @@ const navItems = [
   { id: "feeds", label: "Feed Parser", icon: Database },
   { id: "clients", label: "Organizations", icon: Users },
   { id: "trust", label: "Trust", icon: Shield },
-  { id: "feed-extractor", label: "Feed Extractor", icon: Globe },
+  // { id: "feed-extractor", label: "Feed Extractor", icon: Globe },
   { id: "rag", label: "AI Assistant", icon: BrainCircuit },
 ]
 

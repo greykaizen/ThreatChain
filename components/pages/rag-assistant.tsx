@@ -355,6 +355,7 @@ export default function RagAssistant() {
 
         {/* ─── Sidebar: suggested questions ─────────────────────────────── */}
         <div className="w-64 flex-shrink-0 space-y-4">
+          {/* Suggested Questions - Commented out
           <div style={cardStyle} className="p-4">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
               Suggested Questions
@@ -372,6 +373,7 @@ export default function RagAssistant() {
               ))}
             </div>
           </div>
+          */}
 
           {/* Setup info card */}
           {ragStatus && !ragStatus.online && (
@@ -393,7 +395,7 @@ export default function RagAssistant() {
             </div>
           )}
 
-          {/* LLM info card */}
+          {/* LLM info card - Commented out
           {ragStatus?.online && (
             <div style={cardStyle} className="p-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
@@ -410,6 +412,7 @@ export default function RagAssistant() {
               </p>
             </div>
           )}
+          */}
         </div>
       </div>
     </div>

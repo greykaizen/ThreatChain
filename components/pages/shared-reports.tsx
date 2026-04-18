@@ -292,14 +292,14 @@ export default function SharedReports() {
                       Shared with: {report.sharedWith.join(", ")}
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="flex items-center gap-1">
+                      {/* <Button size="sm" variant="outline" className="flex items-center gap-1">
                         <Eye className="w-3 h-3" />
                         View
                       </Button>
                       <Button size="sm" variant="outline" className="flex items-center gap-1">
                         <Download className="w-3 h-3" />
                         Download
-                      </Button>
+                      </Button> */}
                       <Button 
                         size="sm" 
                         variant="outline" 
