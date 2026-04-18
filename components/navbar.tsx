@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Bell, User, LogOut } from "lucide-react"
+import { Search, Bell, User, LogOut, Shield } from "lucide-react"
 import { useAuth } from "@/app/contexts/AuthContext"
 import { Button } from "./ui/button"
 // import { ThemeToggle } from "./theme-toggle"
@@ -12,8 +12,8 @@ export default function Navbar() {
     <nav className="px-6 py-3 flex items-center justify-between bg-card border-b border-border">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-gray-900 dark:bg-primary flex items-center justify-center">
-            <span className="text-white font-bold text-xs">TC</span>
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
+            <Shield className="w-5 h-5 text-primary-foreground" />
           </div>
           <h1 className="text-base font-semibold text-foreground">ThreatChain</h1>
         </div>
