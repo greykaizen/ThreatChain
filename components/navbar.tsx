@@ -1,9 +1,13 @@
 "use client"
 
-import { Search, Bell, User } from "lucide-react"
+import { Search, Bell, User, LogOut } from "lucide-react"
+import { useAuth } from "@/app/contexts/AuthContext"
+import { Button } from "./ui/button"
 // import { ThemeToggle } from "./theme-toggle"
 
 export default function Navbar() {
+  const { logout } = useAuth()
+
   return (
     <nav className="px-6 py-3 flex items-center justify-between bg-card border-b border-border">
       <div className="flex items-center gap-4">
@@ -32,6 +36,15 @@ export default function Navbar() {
         <button className="p-2 rounded-md hover:bg-muted transition-all">
           <User className="w-4 h-4 text-muted-foreground" />
         </button> */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={logout}
+          className="flex items-center gap-2"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </Button>
       </div>
     </nav>
   )
