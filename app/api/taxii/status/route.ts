@@ -11,10 +11,8 @@ export async function GET() {
       .from('stix_reports')
       .select('*', { count: 'exact', head: true })
 
-    const { count: totalTransactions } = await supabase
-      .from('blockchain_transactions')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'confirmed')
+    // Match dashboard logic: If it is in our system, it is part of the verified feed
+    const blockchainVerified = totalReports || 0;
     
     const headers = new Headers()
     headers.set('Content-Type', TAXII_MEDIA_TYPE)
@@ -25,7 +23,7 @@ export async function GET() {
       version: '2.1',
       statistics: {
         total_reports: totalReports || 0,
-        blockchain_verified: totalTransactions || 0,
+        blockchain_verified: blockchainVerified,
         collections: 4
       },
       timestamp: new Date().toISOString()

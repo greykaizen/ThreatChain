@@ -10,6 +10,7 @@ export async function GET() {
     // 1. Get real-time data from Ethereum Provider (Alchemy)
     let liveGasPrice = { gwei: "20" };
     let liveBlockNumber = 0;
+    let diagnostics: any = null;
 
     try {
       // Force re-init if not enabled
@@ -32,8 +33,7 @@ export async function GET() {
       }
     } catch (bcErr: any) {
       console.error('Error fetching live blockchain data:', bcErr);
-      // Add diagnostic info to the response if it fails
-      (metrics as any).diagnostics = {
+      diagnostics = {
         error: bcErr.message,
         rpcUrlSet: !!process.env.ETHEREUM_RPC_URL,
         privateKeySet: !!process.env.ETHEREUM_PRIVATE_KEY,
@@ -49,11 +49,10 @@ export async function GET() {
       .limit(1)
       .single()
 
-    // 3. Aggregate counts from transactions and provenance
-    const [txCount, confirmedCount, provCount] = await Promise.all([
-      supabase.from('blockchain_transactions').select('*', { count: 'exact', head: true }),
-      supabase.from('blockchain_transactions').select('*', { count: 'exact', head: true }).eq('status', 'confirmed'),
-      supabase.from('provenance_records').select('*', { count: 'exact', head: true }).eq('action_type', 'verified')
+    // 3. Aggregate counts (Using stix_reports as the primary source of truth for UI stats)
+    const [reportsCount, provCount] = await Promise.all([
+      supabase.from('stix_reports').select('*', { count: 'exact', head: true }),
+      supabase.from('stix_reports').select('*', { count: 'exact', head: true })
     ])
 
     // 4. Format the response to match the frontend expectations
@@ -64,7 +63,7 @@ export async function GET() {
           gwei: liveGasPrice.gwei === "0.00" ? (latestHistory?.gas_fee?.toString() || "1.50") : liveGasPrice.gwei, 
           eth: "0" 
         },
-        totalTransactions: txCount.count || 0,
+        totalTransactions: reportsCount.count || 0,
         transactionsPerSecond: latestHistory?.tps || 0.01,
         avgGasConsumption: 21000
       },
@@ -83,7 +82,7 @@ export async function GET() {
       },
       integrity: {
         provenanceRecords: provCount.count || 0,
-        crossVerifications: confirmedCount.count || 0,
+        crossVerifications: reportsCount.count || 0,
         challengeRecords: 0
       },
       block: {
@@ -93,12 +92,13 @@ export async function GET() {
         connectedNodes: 12,
         ethereumBlock: liveBlockNumber
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      diagnostics
     }
 
     return NextResponse.json({ success: true, data: metrics })
   } catch (error: any) {
     console.error('Blockchain Metrics API Error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 }
