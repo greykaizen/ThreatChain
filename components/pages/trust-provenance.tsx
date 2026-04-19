@@ -64,10 +64,10 @@ export default function TrustProvenance() {
 
   const fetchAllData = async () => {
     try {
-      const demoRes = await fetch('/api/trust/score-demo');
-      const demoData = await demoRes.json();
-      setTrustData(demoData);
-      setMlServiceOnline(demoData?.data?.mlServiceOnline ?? false);
+      const engineRes = await fetch('/api/trust/score-demo');
+      const engineData = await engineRes.json();
+      setTrustData(engineData);
+      setMlServiceOnline(engineData?.data?.mlServiceOnline ?? false);
 
       const dsRes = await fetch('/api/trust/dataset-results');
       const dsData = await dsRes.json();
@@ -129,7 +129,7 @@ export default function TrustProvenance() {
           <div className="flex items-center gap-3">
             <span className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold shadow-sm border ${mlServiceOnline ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
               <span className={`w-2 h-2 rounded-full animate-pulse ${mlServiceOnline ? 'bg-green-500' : 'bg-yellow-500'}`} />
-              {mlServiceOnline ? '🤖 XGBoost Core: ACTIVE' : '⚠ DEMO MODE'}
+              {mlServiceOnline ? '🤖 XGBoost Core: ACTIVE' : '⚠ STANDBY MODE'}
             </span>
           </div>
         )}

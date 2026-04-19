@@ -7,7 +7,7 @@ import DashboardOverview from "@/components/pages/dashboard-overview"
 import FeedParser from "@/components/pages/feed-parser"
 import KnowledgeGraph from "@/components/pages/knowledge-graph"
 import TrustProvenance from "@/components/pages/trust-provenance"
-import BlockchainDemo from "@/components/pages/blockchain-demo"
+import ProvenanceIntelligenceHub from "@/components/pages/provenance-hub"
 import BlockchainMetrics from "@/components/pages/blockchain-metrics"
 import SharedReports from "@/components/pages/shared-reports"
 import TaxiiServer from "@/components/pages/taxii-server"
@@ -38,7 +38,7 @@ export default function DashboardPage() {
       case "trust":
         return <TrustProvenance />
       case "blockchain":
-        return <BlockchainDemo />
+        return <ProvenanceIntelligenceHub />
       case "metrics":
         return <BlockchainMetrics />
       case "sharing":

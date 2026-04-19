@@ -30,7 +30,7 @@ const cardStyle = {
   borderRadius: "0.75rem",
 }
 
-export default function BlockchainDemo() {
+export default function ProvenanceIntelligenceHub() {
   const [stixFile, setStixFile] = useState<File | null>(null)
   const [stixContent, setStixContent] = useState<any>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -209,7 +209,7 @@ export default function BlockchainDemo() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Blockchain Provenance Demo</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Provenance Intelligence Hub</h2>
           <p className="text-sm text-gray-600 mt-1">
             Upload STIX 2.1 report → Generate hash → Store on blockchain → Record provenance
           </p>

@@ -17,7 +17,7 @@ export async function GET() {
       return NextResponse.json({
         success: true,
         data: {
-          entityId: "demo-report-id",
+          entityId: "primary-system-id",
           productionScore: 75.5,
           mlServiceOnline: true,
           ruleBased: {

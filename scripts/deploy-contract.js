@@ -50,7 +50,7 @@ async function deployContract() {
       return;
     }
 
-    console.log('\n📝 Note: For this demo, use a pre-deployed contract or deploy manually');
+    console.log('\n📝 Note: For this environment, use a pre-deployed contract or deploy manually');
     console.log('Contract deployment requires compilation with Hardhat or Remix');
     console.log('\nFor now, you can:');
     console.log('1. Deploy via Remix IDE: https://remix.ethereum.org');
