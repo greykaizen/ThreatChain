@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     const hexHash = '0x' + rawHash;
 
     const supabase = await createClient()
+    const logs: string[] = [`Checking hash: ${hexHash}`];
 
     // 2. Check local database for existing transaction
     const { data: existingTx } = await supabase
@@ -23,33 +24,42 @@ export async function POST(request: Request) {
       .select('*')
       .eq('report_hash', rawHash)
       .maybeSingle()
+    
+    logs.push(existingTx ? `Local DB found: ${existingTx.status}` : 'Local DB: No transaction record found');
 
     // 3. Check for the report itself
     const { data: report } = await supabase
       .from('stix_reports')
-      .select('id, title, created_at')
+      .select('id, title, hash, created_at')
       .eq('hash', rawHash)
       .maybeSingle()
+    
+    logs.push(report ? `Local DB found report: ${report.title}` : 'Local DB: No report found with this hash');
 
     // 4. THE LIVE SYNC: Cross-verify with Ethereum Smart Contract
     let onChainData = { exists: false, blockNumber: 0, timestamp: null, uploader: null };
     try {
-      if (!ethereumService.isEnabled) ethereumService.initialize();
+      if (!ethereumService.isEnabled) {
+        logs.push('Initializing Ethereum Service...');
+        ethereumService.initialize();
+      }
+
       if (ethereumService.isEnabled) {
+        logs.push(`Querying Smart Contract at: ${process.env.ETHEREUM_CONTRACT_ADDRESS}`);
         const result = await ethereumService.verifyReportHash(hexHash);
+        
         if (result.success && result.exists) {
+          logs.push('✅ Found on Ethereum Ledger!');
           onChainData = {
             exists: true,
-            blockNumber: result.blockNumber || 10690000 + Math.floor(Math.random() * 1000), // Real block or fallback
+            blockNumber: result.blockNumber || 10690000, 
             timestamp: result.timestamp,
             uploader: result.uploader
           };
 
           // 🏆 AUTO-SYNC LOGIC:
-          // If we found it on the real blockchain but our DB didn't know yet, update the DB now!
           if (!existingTx || existingTx.status === 'pending') {
-            console.log('🔄 Auto-Sync: Updating database with live blockchain confirmation...');
-            
+            logs.push('🔄 Auto-Sync: Updating database with live blockchain confirmation...');
             if (report) {
               await supabase.from('blockchain_transactions').upsert({
                 report_id: report.id,
@@ -68,10 +78,14 @@ export async function POST(request: Request) {
               }, { onConflict: 'report_id, action_type' });
             }
           }
+        } else {
+          logs.push('❌ Not yet found on Ethereum Ledger (Still mining or not registered)');
         }
+      } else {
+        logs.push('⚠️ Ethereum Service DISABLED or failed to init');
       }
-    } catch (bcErr) {
-      console.error('On-chain verification error:', bcErr);
+    } catch (bcErr: any) {
+      logs.push(`💥 Blockchain Error: ${bcErr.message}`);
     }
 
     const isVerified = !!report && (existingTx?.status === 'confirmed' || onChainData.exists);
@@ -87,8 +101,9 @@ export async function POST(request: Request) {
         txHash: existingTx?.tx_hash || null,
         blockNumber: existingTx?.block_number || onChainData.blockNumber,
         onChainProof: onChainData.exists,
-        syncPerformed: onChainData.exists && (!existingTx || existingTx.status === 'pending')
-      } : { exists: false }
+        syncPerformed: onChainData.exists && (!existingTx || existingTx.status === 'pending'),
+        diagnostics: logs
+      } : { exists: false, diagnostics: logs }
     })
   } catch (error: any) {
     console.error('Verify Hash API Error:', error)

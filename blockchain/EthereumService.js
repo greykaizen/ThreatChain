@@ -93,12 +93,29 @@ class EthereumService {
       const tx = await this.contract.registerReport(hashBytes32, reportId);
       console.log('   Transaction submitted:', tx.hash);
 
-      // We return the hash immediately. In a serverless environment, 
-      // waiting for tx.wait() causes timeouts.
+      // 🏆 PRESENTATION LOGIC:
+      // If we are on localhost, we WANT to wait for mining so the teacher sees 'Verified' immediately.
+      // If we are on Vercel, we must return early to avoid the 10s timeout.
+      const isLocal = process.env.NODE_ENV === 'development' || !process.env.VERCEL;
+      
+      if (isLocal) {
+        console.log('   🛠️  Local Mode: Waiting for mining confirmation (Presentation Mode)...');
+        const receipt = await tx.wait();
+        console.log('   ✅ Mined in block:', receipt.blockNumber);
+        return {
+          success: true,
+          txHash: receipt.hash,
+          blockNumber: receipt.blockNumber,
+          status: 'confirmed',
+          timestamp: new Date().toISOString(),
+          explorerUrl: `https://sepolia.etherscan.io/tx/${receipt.hash}`
+        };
+      }
+
       return {
         success: true,
         txHash: tx.hash,
-        blockNumber: 0, // Will be updated on next verification
+        blockNumber: 0,
         status: 'pending',
         timestamp: new Date().toISOString(),
         explorerUrl: `https://sepolia.etherscan.io/tx/${tx.hash}`
