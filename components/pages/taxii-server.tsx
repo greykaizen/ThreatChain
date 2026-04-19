@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Server, CheckCircle2, Copy, ExternalLink, RefreshCw, Shield, Database, Globe, Download, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 interface TaxiiReport {
   id: string
