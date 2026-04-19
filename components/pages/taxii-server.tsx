@@ -554,12 +554,6 @@ export default function TaxiiServer() {
                           : 'Warning: This file has been tampered with! The current content does not match the original verified record.'}
                       </p>
                     </div>
-                          ? 'This report is globally verified. The database fingerprint matches the immutable record on the Ethereum ledger.'
-                          : verificationModal.result.freshHash === verificationModal.result.blockchainHash
-                          ? 'The report content is authentic and matches our database records. Note: Global ledger anchoring is currently pending or processing.'
-                          : 'Warning: This file has been tampered with! The current content does not match the original verified record.'}
-                      </p>
-                    </div>
 
                     <div className="space-y-4">
                       {/* Manual Verification Zone */}
