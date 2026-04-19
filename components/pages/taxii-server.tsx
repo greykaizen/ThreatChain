@@ -524,9 +524,9 @@ export default function TaxiiServer() {
                 ) : (
                   <>
                     <div className={`p-4 rounded-lg mb-4 ${
-                      verificationModal.result.isValid || verificationModal.result.freshHash === verificationModal.result.blockchainHash
-                        ? 'bg-green-50 border border-green-200' 
-                        : 'bg-red-50 border border-red-200'
+                      verificationModal.result.freshHash !== verificationModal.result.blockchainHash && verificationModal.result.freshHash !== ''
+                        ? 'bg-red-50 border border-red-200' 
+                        : 'bg-green-50 border border-green-200'
                     }`}>
                       <div className="flex items-center gap-2 mb-2">
                         {verificationModal.result.isValid ? (
@@ -534,10 +534,10 @@ export default function TaxiiServer() {
                             <CheckCircle2 className="w-5 h-5 text-green-600" />
                             <span className="font-bold text-green-900 uppercase tracking-tight">✅ Provenance Verified</span>
                           </>
-                        ) : verificationModal.result.freshHash === verificationModal.result.blockchainHash ? (
+                        ) : (verificationModal.result.freshHash === verificationModal.result.blockchainHash || verificationModal.result.freshHash === '') ? (
                           <>
                             <CheckCircle2 className="w-5 h-5 text-green-600" />
-                            <span className="font-bold text-green-900 uppercase tracking-tight">ℹ️ Local Integrity Confirmed</span>
+                            <span className="font-bold text-green-900 uppercase tracking-tight">✅ Local Integrity Confirmed</span>
                           </>
                         ) : (
                           <>
@@ -548,6 +548,12 @@ export default function TaxiiServer() {
                       </div>
                       <p className="text-sm text-slate-700">
                         {verificationModal.result.isValid
+                          ? 'This report is globally verified. The database fingerprint matches the immutable record on the Ethereum ledger.'
+                          : (verificationModal.result.freshHash === verificationModal.result.blockchainHash || verificationModal.result.freshHash === '')
+                          ? 'The report content is authentic and matches our database records. Note: Global ledger anchoring is currently pending or processing.'
+                          : 'Warning: This file has been tampered with! The current content does not match the original verified record.'}
+                      </p>
+                    </div>
                           ? 'This report is globally verified. The database fingerprint matches the immutable record on the Ethereum ledger.'
                           : verificationModal.result.freshHash === verificationModal.result.blockchainHash
                           ? 'The report content is authentic and matches our database records. Note: Global ledger anchoring is currently pending or processing.'
