@@ -11,31 +11,39 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Hash is required' }, { status: 400 })
     }
 
-    // Clean hash (remove 0x if present for DB check)
-    const cleanHash = hash.startsWith('0x') ? hash.substring(2) : hash;
-    const hexHash = hash.startsWith('0x') ? hash : '0x' + hash;
+    // 1. Normalize the hash for exhaustive searching
+    const rawHash = hash.replace('0x', '').toLowerCase();
+    const hexHash = '0x' + rawHash;
 
     const supabase = await createClient()
 
-    // 1. Check local database transaction records
-    const { data: tx, error } = await supabase
+    // 2. Check local database transaction records (Search for all possible formats)
+    const { data: tx } = await supabase
       .from('blockchain_transactions')
       .select('*')
-      .or(`report_hash.eq.${cleanHash},report_hash.eq.${hexHash}`)
+      .or(`report_hash.eq.${rawHash},report_hash.eq.${hexHash}`)
       .eq('status', 'confirmed')
       .maybeSingle()
 
-    // 2. Cross-verify with Live Ethereum Contract (The ultimate source of truth)
+    // 3. Fallback: Check the stix_reports table itself (Search for all possible formats)
+    const { data: report } = await supabase
+      .from('stix_reports')
+      .select('id, title, created_at, hash')
+      .or(`hash.eq.${rawHash},hash.eq.${hexHash}`)
+      .maybeSingle()
+
+    // 4. Cross-verify with Live Ethereum Contract
     let onChainData = { exists: false };
     try {
+      if (!ethereumService.isEnabled) ethereumService.initialize();
       if (ethereumService.isEnabled) {
-        const result = await ethereumService.verifyReportHash(cleanHash);
+        // Contract ALWAYS expects the 0xhex format
+        const result = await ethereumService.verifyReportHash(hexHash);
         if (result.success && result.exists) {
           onChainData = {
             exists: true,
             timestamp: result.timestamp,
-            uploader: result.uploader,
-            reportId: result.reportId
+            uploader: result.uploader
           };
         }
       }
@@ -43,18 +51,21 @@ export async function POST(request: Request) {
       console.error('On-chain verification error:', bcErr);
     }
 
-    const isVerified = !!tx || onChainData.exists;
+    // 🏆 FINAL DETERMINATION
+    // A report is verified if it exists in our system AND has any proof of anchoring (Local DB or Blockchain)
+    const isVerified = !!report && (!!tx || onChainData.exists);
 
     return NextResponse.json({
       success: true,
       verified: isVerified,
       data: isVerified ? {
         exists: true,
-        blockNumber: tx?.block_number || null,
-        timestamp: tx?.confirmation_time || onChainData.timestamp || null,
+        reportId: report?.id,
+        title: report?.title,
+        timestamp: tx?.confirmation_time || onChainData.timestamp || report?.created_at,
         txHash: tx?.tx_hash || null,
         onChainProof: onChainData.exists,
-        uploader: onChainData.uploader || null
+        normalizedHash: rawHash
       } : { exists: false }
     })
   } catch (error: any) {

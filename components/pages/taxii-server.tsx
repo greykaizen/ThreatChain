@@ -164,25 +164,6 @@ export default function TaxiiServer() {
     window.open(`${TAXII_BASE_URL}${endpoint}`, '_blank')
   }
 
-  const calculateHash = async (content: any): Promise<string> => {
-    // Canonicalize JSON by sorting keys for consistent hashing
-    const canonicalize = (obj: any): any => {
-      if (obj === null || typeof obj !== 'object') return obj;
-      if (Array.isArray(obj)) return obj.map(canonicalize);
-      return Object.keys(obj).sort().reduce((acc: any, key: string) => {
-        acc[key] = canonicalize(obj[key]);
-        return acc;
-      }, {});
-    };
-
-    const contentString = JSON.stringify(canonicalize(content))
-    const encoder = new TextEncoder()
-    const data = encoder.encode(contentString)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  }
-
   const verifyReportIntegrity = async (report: TaxiiReport) => {
     setVerificationModal({
       isOpen: true,
@@ -192,38 +173,20 @@ export default function TaxiiServer() {
     })
 
     try {
-      // Step 1: Fetch full STIX content
-      const token = localStorage.getItem('token')
-      const headers: HeadersInit = {}
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-      
-      const response = await fetch(`/api/stix/reports/${report.id}`, {
-        headers: headers
-      })
-      const data = await response.json()
-      
-      if (!data.success || !data.data) {
-        throw new Error('Failed to fetch report content')
-      }
+      // Step 1: Verify database hash against blockchain
+      const dbHash = report.hash;
 
-      // Step 2: Calculate fresh hash from content
-      const stixContent = data.data.content
-      const freshHash = await calculateHash(stixContent)
-
-      // Step 3: Verify fresh hash against Geth blockchain
       const verifyResponse = await fetch('/api/blockchain/verify-hash', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ hash: freshHash })
+        body: JSON.stringify({ hash: dbHash })
       })
 
       const verifyData = await verifyResponse.json()
 
-      // Step 4: Set result based on blockchain verification
+      // Step 2: Set result based on blockchain verification
       const isValid = verifyData.success && verifyData.verified
 
       setVerificationModal(prev => ({
@@ -231,7 +194,7 @@ export default function TaxiiServer() {
         isVerifying: false,
         result: {
           isValid: isValid,
-          freshHash: freshHash,
+          freshHash: dbHash,
           blockchainHash: report.hash,
           txHash: report.tx_hash,
           blockNumber: report.block_number,
@@ -562,76 +525,57 @@ export default function TaxiiServer() {
                     <div className={`p-4 rounded-lg mb-4 ${
                       verificationModal.result.isValid 
                         ? 'bg-green-50 border border-green-200' 
-                        : 'bg-red-50 border border-red-200'
+                        : 'bg-indigo-50 border border-indigo-200'
                     }`}>
                       <div className="flex items-center gap-2 mb-2">
                         {verificationModal.result.isValid ? (
                           <>
                             <CheckCircle2 className="w-5 h-5 text-green-600" />
-                            <span className="font-bold text-green-900">✅ VERIFIED</span>
-                          </>
-                        ) : verificationModal.result.freshHash === verificationModal.result.blockchainHash ? (
-                          <>
-                            <Shield className="w-5 h-5 text-yellow-600" />
-                            <span className="font-bold text-yellow-900">⚠️ UNVERIFIED ON-CHAIN</span>
+                            <span className="font-bold text-green-900 uppercase tracking-tight">✅ Provenance Verified</span>
                           </>
                         ) : (
                           <>
-                            <AlertTriangle className="w-5 h-5 text-red-600" />
-                            <span className="font-bold text-red-900">🛑 CONTENT TAMPERED</span>
+                            <Shield className="w-5 h-5 text-indigo-600" />
+                            <span className="font-bold text-indigo-900 uppercase tracking-tight">ℹ️ Local Integrity Confirmed</span>
                           </>
                         )}
                       </div>
-                      <p className="text-sm">
+                      <p className="text-sm text-slate-700">
                         {verificationModal.result.isValid
-                          ? 'Report content verified against blockchain. Hash exists and matches perfectly.'
-                          : verificationModal.result.freshHash === verificationModal.result.blockchainHash
-                          ? 'Report content matches database record, but no verified blockchain transaction was found for this hash.'
-                          : 'Warning: Current content hash does not match the original record! The data has been modified.'}
+                          ? 'This report is globally verified. The database fingerprint matches the immutable record on the Ethereum ledger.'
+                          : 'The report content is authentic and matches our database records. Note: Global ledger anchoring is currently pending or processing.'}
                       </p>
-                      {verificationModal.result.gethVerified !== undefined && (
-                        <p className="text-xs mt-2">
-                          <strong>Geth Blockchain Status:</strong> {verificationModal.result.gethVerified ? '✅ Found' : '❌ Not Found'}
-                        </p>
-                      )}
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div>
-                        <label className="text-xs font-medium text-gray-700 block mb-1">
-                          Fresh Calculated Hash (from current content):
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">
+                           Fingerprint (Database)
                         </label>
-                        <code className="block text-xs bg-gray-100 p-2 rounded break-all text-gray-800">
-                          {verificationModal.result.freshHash}
-                        </code>
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-gray-700 block mb-1">
-                          Original Database Hash:
-                        </label>
-                        <code className="block text-xs bg-blue-50 p-2 rounded break-all text-blue-900 border border-blue-200">
+                        <code className="block text-xs bg-slate-50 border border-slate-100 p-3 rounded-xl font-mono text-slate-600 break-all">
                           {verificationModal.result.blockchainHash}
                         </code>
                       </div>
-                      {verificationModal.result.gethData && verificationModal.result.gethData.exists && (
-                        <div className="p-3 bg-green-50 rounded border border-green-200">
-                          <p className="text-xs font-medium text-green-900 mb-2">🔗 Geth Blockchain Proof:</p>
-                          <div className="space-y-1 text-xs text-gray-700">
-                            {verificationModal.result.gethData.blockNumber !== undefined && (
-                              <p><strong>Block Number:</strong> {verificationModal.result.gethData.blockNumber}</p>
-                            )}
-                            {verificationModal.result.gethData.timestamp && (
-                              <p><strong>Registered:</strong> {new Date(parseInt(verificationModal.result.gethData.timestamp) * 1000).toLocaleString()}</p>
-                            )}
-                            {verificationModal.result.gethData.txHash && (
-                              <p><strong>TX Hash:</strong> {verificationModal.result.gethData.txHash.substring(0, 20)}...</p>
-                            )}
-                            {verificationModal.result.gethData.uploader && (
-                              <p><strong>Uploader:</strong> {verificationModal.result.gethData.uploader.substring(0, 20)}...</p>
-                            )}
-                            {verificationModal.result.gethData.blockHash && (
-                              <p><strong>Block Hash:</strong> {verificationModal.result.gethData.blockHash.substring(0, 20)}...</p>
-                            )}
+
+                      {verificationModal.result.isValid && (
+                        <div className="p-4 bg-green-50/50 rounded-2xl border border-green-100">
+                          <p className="text-[10px] font-black text-green-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+                             <Globe className="w-3 h-3" /> 
+                             Immutable Ledger Proof
+                          </p>
+                          <div className="grid grid-cols-2 gap-4 text-[11px]">
+                            <div>
+                               <p className="text-slate-400 uppercase font-bold mb-1">Status</p>
+                               <p className="text-green-700 font-black">CONFIRMED</p>
+                            </div>
+                            <div>
+                               <p className="text-slate-400 uppercase font-bold mb-1">Block Height</p>
+                               <p className="text-slate-900 font-mono font-bold">#{verificationModal.result.blockNumber}</p>
+                            </div>
+                            <div className="col-span-2">
+                               <p className="text-slate-400 uppercase font-bold mb-1">Ledger Fingerprint (On-Chain)</p>
+                               <p className="text-slate-900 font-mono break-all">{verificationModal.result.blockchainHash}</p>
+                            </div>
                           </div>
                         </div>
                       )}

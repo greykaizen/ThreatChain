@@ -8,18 +8,6 @@ import crypto from 'crypto'
 // Using require for the JS blockchain service
 const ethereumService = require('@/blockchain/EthereumService');
 
-/**
- * Canonicalize JSON object by sorting keys alphabetically
- */
-function canonicalize(obj: any): any {
-  if (obj === null || typeof obj !== 'object') return obj;
-  if (Array.isArray(obj)) return obj.map(canonicalize);
-  return Object.keys(obj).sort().reduce((acc: any, key: string) => {
-    acc[key] = canonicalize(obj[key]);
-    return acc;
-  }, {});
-}
-
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
@@ -41,119 +29,110 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid JSON content' }, { status: 400 })
     }
 
-    // 1. Generate Hash from canonical content
-    const canonicalContent = JSON.stringify(canonicalize(stixBundle))
-    const hash = crypto.createHash('sha256').update(canonicalContent).digest('hex')
+    // 1. Generate Hash - MATCHING TEAM'S ORIGINAL LOGIC
+    const reportHash = crypto.createHash('sha256').update(JSON.stringify(stixBundle)).digest('hex')
 
     // 2. Check for duplicate
     const { data: existing } = await supabase
       .from('stix_reports')
-      .select('id')
-      .eq('hash', hash)
+      .select('id, title, created_at')
+      .eq('hash', reportHash)
       .maybeSingle()
 
     if (existing) {
       return NextResponse.json({ 
         success: false, 
-        message: 'This report already exists in the database' 
+        error: 'Duplicate report detected',
+        message: `A report with identical content already exists. Original: "${existing.title}"` 
       }, { status: 409 })
     }
 
-    // 3. Archive to Supabase Storage (Safe Naming)
-    const safeFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-    const storagePath = `${hash}-${safeFileName}`;
-    try {
-      await supabaseAdmin.storage.from('reports').upload(storagePath, file, {
-        upsert: true,
-        contentType: file.type || 'application/json'
-      })
-    } catch (sErr) {
-      console.error('Storage archival failed (continuing anyway):', sErr)
-    }
+    // 3. Generate Unique ID
+    const reportId = crypto.randomUUID()
 
-    const { data: publicUrlData } = supabaseAdmin.storage.from('reports').getPublicUrl(storagePath)
-    const publicUrl = publicUrlData?.publicUrl || null
-
-    // 4. Save to Supabase DB (The UI depends on this)
-    const { data: report, error } = await supabase
+    // 4. Save to Database - EXACT TEAM STRUCTURE
+    const { data: report, error: dbError } = await supabase
       .from('stix_reports')
       .insert({
+        id: reportId,
         title: title || file.name,
-        description: description || 'STIX 2.1 Threat Intelligence Report',
-        content: canonicalize(stixBundle),
-        hash,
+        description: description || 'Uploaded STIX report',
+        content: stixBundle, // Supabase handles JSON object
         file_name: file.name,
         file_size: file.size,
-        file_url: publicUrl,
-        stix_version: '2.1',
+        hash: reportHash,
+        stix_version: stixBundle.spec_version || '2.1',
+        report_type: stixBundle.type || 'bundle',
         indicators_count: stixBundle.objects?.filter((obj: any) => obj.type === 'indicator').length || 0
       })
       .select()
       .single()
 
-    if (error) throw error
+    if (dbError) throw dbError
 
-    // 5. Rule-Based Trust & ML (Internal Triggers)
+    // 5. Intelligent Analysis (Rule-Based & ML)
     const calculator = new SupabaseTrustCalculator()
-    await calculator.calculate('report', report.id)
+    await calculator.calculate('report', reportId)
 
-    // 6. Blockchain Registration (Improved Robustness)
-    let blockchainResult = { success: false, txHash: null, blockNumber: 0 };
-    
-    // Create the transaction record IMMEDIATELY in Supabase (Guarantees Dashboard Updates)
-    const { data: dbTx } = await supabase.from('blockchain_transactions').insert({
-      report_id: report.id,
-      report_hash: hash,
-      status: 'pending',
-      tx_hash: 'pending-' + hash.substring(0, 10)
-    }).select().single();
+    // ML Trigger
+    const features = {
+      indicator_count: report.indicators_count,
+      has_malware: stixBundle.objects?.some((o: any) => o.type === 'malware') ? 1 : 0,
+      has_actor: stixBundle.objects?.some((o: any) => o.type === 'threat-actor') ? 1 : 0,
+      complexity_score: content.length / 1000
+    };
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+    const host = request.headers.get('host');
+    fetch(`${protocol}://${host}/api/ml/predict`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entity_id: reportId, features })
+    }).catch(() => {});
 
+    // 6. Blockchain Registration
+    let blockchainResult = { success: false, txHash: null };
     try {
       if (!ethereumService.isEnabled) ethereumService.initialize();
-      
       if (ethereumService.isEnabled) {
-        blockchainResult = await ethereumService.registerReportHash(hash, report.id);
+        blockchainResult = await ethereumService.registerReportHash(reportHash, reportId);
         
         if (blockchainResult.success) {
-          // Update the pending record with the REAL txHash
-          await supabase.from('blockchain_transactions').update({
+          await supabase.from('blockchain_transactions').insert({
+            report_id: reportId,
+            report_hash: reportHash,
             tx_hash: blockchainResult.txHash,
             block_number: blockchainResult.blockNumber,
-            gas_used: blockchainResult.gasUsed,
             status: 'confirmed',
             confirmation_time: blockchainResult.timestamp
-          }).eq('id', dbTx.id);
+          });
 
           await supabase.from('provenance_records').insert({
-            report_id: report.id,
+            report_id: reportId,
             action_type: 'verified',
             actor: 'System',
-            metadata: { txHash: blockchainResult.txHash, source: 'live-sepolia' }
+            metadata: { txHash: blockchainResult.txHash }
           });
         }
       }
     } catch (bcErr) {
-      console.error('Blockchain Registration Error:', bcErr);
-      // We keep the 'pending' record so the user still sees it in their history
+      console.error('Blockchain error:', bcErr);
     }
 
-    // 7. Neural Indexing
-    try {
-      const rag = new SupabaseRAG()
-      await rag.indexReport(report.id, canonicalContent)
-    } catch (ragErr) {
-      console.error('RAG Indexing Error:', ragErr);
-    }
+    // 7. Storage Archival (Silent Background Task)
+    const safeFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+    supabaseAdmin.storage.from('reports').upload(`${reportHash}-${safeFileName}`, file, { upsert: true }).catch(() => {});
 
     return NextResponse.json({
       success: true,
-      reportId: report.id,
-      hash,
-      blockchain: blockchainResult.success ? blockchainResult : { status: 'recorded-locally', txHash: dbTx.tx_hash }
+      data: {
+        reportId: reportId,
+        reportHash: reportHash,
+        blockchain: blockchainResult
+      }
     })
 
   } catch (error: any) {
     console.error('STIX Upload Error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 }
