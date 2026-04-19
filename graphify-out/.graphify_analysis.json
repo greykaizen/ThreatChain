@@ -1,0 +1,1034 @@
+{
+  "communities": {
+    "0": [
+      "index_trustengine_gettrusthistory",
+      "lib_blockchain_metricsstorage_js",
+      "lib_trust_engine_ruleengine_js",
+      "lib_trust_engine_trusthistory_js",
+      "lib_trust_engine_trustmetrics_js",
+      "metricsstorage_metricsstorage",
+      "metricsstorage_metricsstorage_cleanoldrecords",
+      "metricsstorage_metricsstorage_constructor",
+      "metricsstorage_metricsstorage_exportmetrics",
+      "metricsstorage_metricsstorage_getaggregatedstats",
+      "metricsstorage_metricsstorage_getfromcache",
+      "metricsstorage_metricsstorage_gethistoricalmetrics",
+      "metricsstorage_metricsstorage_getlatestmetrics",
+      "metricsstorage_metricsstorage_initializedatabase",
+      "metricsstorage_metricsstorage_storemetrics",
+      "retriever_query",
+      "retriever_rationale_67",
+      "ruleengine_ruleengine",
+      "ruleengine_ruleengine_checkcondition",
+      "ruleengine_ruleengine_clearcache",
+      "ruleengine_ruleengine_constructor",
+      "ruleengine_ruleengine_createrule",
+      "ruleengine_ruleengine_deactivaterule",
+      "ruleengine_ruleengine_evaluatecondition",
+      "ruleengine_ruleengine_evaluaterule",
+      "ruleengine_ruleengine_evaluaterules",
+      "ruleengine_ruleengine_getactiverules",
+      "ruleengine_ruleengine_getfieldvalue",
+      "ruleengine_ruleengine_parsecondition",
+      "ruleengine_ruleengine_updaterule",
+      "trusthistory_trusthistory",
+      "trusthistory_trusthistory_compareentities",
+      "trusthistory_trusthistory_exporthistory",
+      "trusthistory_trusthistory_geteventsbytype",
+      "trusthistory_trusthistory_gethistory",
+      "trusthistory_trusthistory_getmilestones",
+      "trusthistory_trusthistory_getrecentchanges",
+      "trusthistory_trusthistory_getscoretimeline",
+      "trusthistory_trusthistory_gettrusttrend",
+      "trusthistory_trusthistory_gettrustvolatility",
+      "trustmetrics_trustmetrics",
+      "trustmetrics_trustmetrics_calculateoverallscore",
+      "trustmetrics_trustmetrics_getmetricssummary",
+      "trustmetrics_trustmetrics_gettoptrustedentities",
+      "trustmetrics_trustmetrics_gettrustbadge",
+      "trustmetrics_trustmetrics_gettrustdistribution",
+      "trustmetrics_trustmetrics_recordtrustevent",
+      "trustmetrics_trustmetrics_updatebehaviorscore",
+      "trustmetrics_trustmetrics_updateverificationscore"
+    ],
+    "1": [
+      "components_pages_knowledge_graph_tsx",
+      "knowledge_graph_addrelationship",
+      "knowledge_graph_animate",
+      "knowledge_graph_applyforces",
+      "knowledge_graph_applyforcesstix",
+      "knowledge_graph_confirmconversion",
+      "knowledge_graph_drawgraph",
+      "knowledge_graph_drawstixgraph",
+      "knowledge_graph_findnodeatposition",
+      "knowledge_graph_findstixnodeatposition",
+      "knowledge_graph_generatedatagraph",
+      "knowledge_graph_generategraph",
+      "knowledge_graph_generateinitialgraph",
+      "knowledge_graph_generateschemagraph",
+      "knowledge_graph_generatestixgraph",
+      "knowledge_graph_getmousepos",
+      "knowledge_graph_getmouseposstix",
+      "knowledge_graph_handleconverttostix",
+      "knowledge_graph_handlemousedown",
+      "knowledge_graph_handlemousedownstix",
+      "knowledge_graph_handlemousemove",
+      "knowledge_graph_handlemousemovestix",
+      "knowledge_graph_handlemouseup",
+      "knowledge_graph_handlemouseupstix",
+      "knowledge_graph_handlewheel",
+      "knowledge_graph_handlewheelstix",
+      "knowledge_graph_initializenodepositions",
+      "knowledge_graph_removerelationship",
+      "knowledge_graph_resetview",
+      "knowledge_graph_resetviewstix"
+    ],
+    "2": [
+      "alert_alert",
+      "alert_cn",
+      "app_login_page_tsx",
+      "blockchain_demo_checkbackend",
+      "blockchain_demo_generatehash",
+      "blockchain_demo_getstatusicon",
+      "blockchain_demo_handlefileupload",
+      "blockchain_demo_processstixreport",
+      "components_blockchain_exportbutton_tsx",
+      "components_pages_blockchain_demo_tsx",
+      "components_pages_shared_reports_tsx",
+      "components_pages_sharing_reports_tsx",
+      "components_ui_alert_tsx",
+      "exportbutton_handleexport",
+      "page_handlelogin",
+      "shared_reports_fetchreports",
+      "shared_reports_getaccesslevelcolor",
+      "shared_reports_getseveritycolor",
+      "shared_reports_getstatuscolor",
+      "shared_reports_handledeletereport",
+      "sharing_reports_fetchreports",
+      "sharing_reports_getaccesslevelcolor",
+      "sharing_reports_getseveritycolor",
+      "sharing_reports_getstatuscolor",
+      "sharing_reports_gettrustlevelcolor",
+      "sharing_reports_handledeletereport",
+      "sharing_reports_handlesendmessage",
+      "sharing_reports_handlesharereport",
+      "sharing_reports_toggleorganization"
+    ],
+    "3": [
+      "index_trustengine",
+      "index_trustengine_calculatetrustscore",
+      "index_trustengine_constructor",
+      "index_trustengine_evaluatereporttrust",
+      "index_trustengine_getrules",
+      "index_trustengine_initialize",
+      "index_trustengine_isready",
+      "index_trustengine_setupeventlisteners",
+      "index_trustengine_updatebehaviorscore",
+      "index_trustengine_updateverificationscore",
+      "lib_trust_engine_index_js",
+      "lib_trust_engine_trustcalculator_js",
+      "trustcalculator_trustcalculator",
+      "trustcalculator_trustcalculator_calculate",
+      "trustcalculator_trustcalculator_calculatebehaviorscore",
+      "trustcalculator_trustcalculator_calculatequalityscore",
+      "trustcalculator_trustcalculator_calculatereputationscore",
+      "trustcalculator_trustcalculator_calculatetimelinessscore",
+      "trustcalculator_trustcalculator_calculateverificationscore",
+      "trustcalculator_trustcalculator_calculateweightedscore",
+      "trustcalculator_trustcalculator_constructor",
+      "trustcalculator_trustcalculator_getentitydata",
+      "trustcalculator_trustcalculator_recordtrustevent",
+      "trustcalculator_trustcalculator_savetrustscore"
+    ],
+    "4": [
+      "lib_blockchain_metricscollector_js",
+      "metricscollector_metricscollector",
+      "metricscollector_metricscollector_collectmetrics",
+      "metricscollector_metricscollector_constructor",
+      "metricscollector_metricscollector_getaveragegasconsumption",
+      "metricscollector_metricscollector_getaveragelatency",
+      "metricscollector_metricscollector_getblockchainutilization",
+      "metricscollector_metricscollector_getchallengerecords",
+      "metricscollector_metricscollector_getconnectednodes",
+      "metricscollector_metricscollector_getcrossverifications",
+      "metricscollector_metricscollector_getethereumblocknumber",
+      "metricscollector_metricscollector_getgasprice",
+      "metricscollector_metricscollector_getlatestblock",
+      "metricscollector_metricscollector_getprovenancerecords",
+      "metricscollector_metricscollector_getsuccessrate",
+      "metricscollector_metricscollector_gettotaltransactions",
+      "metricscollector_metricscollector_gettransactioncount",
+      "metricscollector_metricscollector_iscachevalid"
+    ],
+    "5": [
+      "app_background_index",
+      "app_query",
+      "app_rationale_1",
+      "app_reindex",
+      "app_status",
+      "indexer_build_or_load",
+      "indexer_get_client",
+      "indexer_get_collection",
+      "indexer_get_indexed_count",
+      "indexer_get_model",
+      "indexer_index_documents",
+      "indexer_rationale_1",
+      "indexer_rationale_43",
+      "indexer_rationale_68",
+      "indexer_rebuild_index",
+      "rag_service_app_py",
+      "rag_service_indexer_py"
+    ],
+    "6": [
+      "lib_blockchain_metricscalculator_js",
+      "metricscalculator_metricscalculator",
+      "metricscalculator_metricscalculator_aggregatemetrics",
+      "metricscalculator_metricscalculator_calculateaveragegas",
+      "metricscalculator_metricscalculator_calculateaveragelatency",
+      "metricscalculator_metricscalculator_calculatefailurerate",
+      "metricscalculator_metricscalculator_calculatepercentagechange",
+      "metricscalculator_metricscalculator_calculateseverity",
+      "metricscalculator_metricscalculator_calculatesuccessrate",
+      "metricscalculator_metricscalculator_calculatethroughput",
+      "metricscalculator_metricscalculator_calculatetps",
+      "metricscalculator_metricscalculator_calculatetrend",
+      "metricscalculator_metricscalculator_calculateutilization",
+      "metricscalculator_metricscalculator_checkthreshold",
+      "metricscalculator_metricscalculator_formatbytes",
+      "metricscalculator_metricscalculator_weitoeth",
+      "metricscalculator_metricscalculator_weitogwei"
+    ],
+    "7": [
+      "lib_taxii_client_example_js",
+      "taxii_client_example_exampleusage",
+      "taxii_client_example_threatchaintaxiiclient",
+      "taxii_client_example_threatchaintaxiiclient_constructor",
+      "taxii_client_example_threatchaintaxiiclient_discover",
+      "taxii_client_example_threatchaintaxiiclient_getallobjects",
+      "taxii_client_example_threatchaintaxiiclient_getapiroot",
+      "taxii_client_example_threatchaintaxiiclient_getcollection",
+      "taxii_client_example_threatchaintaxiiclient_getcollections",
+      "taxii_client_example_threatchaintaxiiclient_getobject",
+      "taxii_client_example_threatchaintaxiiclient_getobjects",
+      "taxii_client_example_threatchaintaxiiclient_getobjectsbytype",
+      "taxii_client_example_threatchaintaxiiclient_getrecentthreats",
+      "taxii_client_example_threatchaintaxiiclient_getstatus",
+      "taxii_client_example_threatchaintaxiiclient_getverifiedobjects"
+    ],
+    "8": [
+      "lib_blockchain_systemmetrics_js",
+      "systemmetrics_systemmetrics",
+      "systemmetrics_systemmetrics_cleanoldmetrics",
+      "systemmetrics_systemmetrics_constructor",
+      "systemmetrics_systemmetrics_cpuaverage",
+      "systemmetrics_systemmetrics_getaveragecpu",
+      "systemmetrics_systemmetrics_getcpuusage",
+      "systemmetrics_systemmetrics_getlatestmetrics",
+      "systemmetrics_systemmetrics_getloadaverage",
+      "systemmetrics_systemmetrics_getmemoryusage",
+      "systemmetrics_systemmetrics_getnetworkstats",
+      "systemmetrics_systemmetrics_getplatforminfo",
+      "systemmetrics_systemmetrics_getprocessuptime",
+      "systemmetrics_systemmetrics_getuptime",
+      "systemmetrics_systemmetrics_storemetrics"
+    ],
+    "9": [
+      "app_health_check",
+      "app_load_models",
+      "app_ml_status",
+      "app_predict_trust_score",
+      "app_preprocess_features",
+      "app_rationale_100",
+      "app_rationale_164",
+      "app_rationale_25",
+      "app_rationale_262",
+      "app_rationale_276",
+      "app_rationale_296",
+      "app_train_model",
+      "ml_service_app_py"
+    ],
+    "10": [
+      "index_trustengine_emit",
+      "lib_trust_engine_trusteventemitter_js",
+      "trusteventemitter_trusteventemitter",
+      "trusteventemitter_trusteventemitter_constructor",
+      "trusteventemitter_trusteventemitter_emitblockchainconfirmed",
+      "trusteventemitter_trusteventemitter_emitduplicatedetected",
+      "trusteventemitter_trusteventemitter_emitorganizationactivity",
+      "trusteventemitter_trusteventemitter_emitprovenancerecorded",
+      "trusteventemitter_trusteventemitter_emitreportuploaded",
+      "trusteventemitter_trusteventemitter_emitreportverified",
+      "trusteventemitter_trusteventemitter_emittrustalert",
+      "trusteventemitter_trusteventemitter_emittrustscoreupdated",
+      "trusteventemitter_trusteventemitter_setuperrorhandling"
+    ],
+    "11": [
+      "db_loader_chunk_text",
+      "db_loader_get_connection",
+      "db_loader_load_all_documents",
+      "db_loader_load_stix_indicators",
+      "db_loader_load_stix_reports",
+      "db_loader_rationale_1",
+      "db_loader_rationale_103",
+      "db_loader_rationale_26",
+      "db_loader_rationale_39",
+      "rag_service_db_loader_py"
+    ],
+    "12": [
+      "components_pages_feed_management_tsx",
+      "feed_management_detecttype",
+      "feed_management_drawgraph",
+      "feed_management_handleaddfeed",
+      "feed_management_handleconverttostix",
+      "feed_management_handlefileupload",
+      "feed_management_handleproceedtograph",
+      "feed_management_parsecsv",
+      "feed_management_parsexml",
+      "feed_management_toggleattribute"
+    ],
+    "13": [
+      "components_ui_sidebar_tsx",
+      "sidebar_cn",
+      "sidebar_handlekeydown",
+      "sidebar_sidebarfooter",
+      "sidebar_sidebarheader",
+      "sidebar_sidebarmenu",
+      "sidebar_sidebarmenubutton",
+      "sidebar_sidebarmenuitem",
+      "sidebar_sidebarseparator",
+      "sidebar_usesidebar"
+    ],
+    "14": [
+      "components_ui_sheet_tsx",
+      "sheet_sheet",
+      "sheet_sheetclose",
+      "sheet_sheetdescription",
+      "sheet_sheetfooter",
+      "sheet_sheetheader",
+      "sheet_sheetoverlay",
+      "sheet_sheetportal",
+      "sheet_sheettitle",
+      "sheet_sheettrigger"
+    ],
+    "15": [
+      "components_ui_select_tsx",
+      "select_select",
+      "select_selectgroup",
+      "select_selectitem",
+      "select_selectlabel",
+      "select_selectscrolldownbutton",
+      "select_selectscrollupbutton",
+      "select_selectseparator",
+      "select_selecttrigger",
+      "select_selectvalue"
+    ],
+    "16": [
+      "lib_trust_engine_stixfeatureextractor_js",
+      "stixfeatureextractor_stixfeatureextractor",
+      "stixfeatureextractor_stixfeatureextractor_calculatefromobjects",
+      "stixfeatureextractor_stixfeatureextractor_constructor",
+      "stixfeatureextractor_stixfeatureextractor_extractfrombundle",
+      "stixfeatureextractor_stixfeatureextractor_extractmlfeatures",
+      "stixfeatureextractor_stixfeatureextractor_fillmissingfeatures",
+      "stixfeatureextractor_stixfeatureextractor_getdefaultfeatures",
+      "stixfeatureextractor_stixfeatureextractor_mergefeatures"
+    ],
+    "17": [
+      "app_contexts_authcontext_tsx",
+      "app_signup_page_tsx",
+      "authcontext_authprovider",
+      "authcontext_useauth",
+      "components_navbar_tsx",
+      "components_protectedroute_tsx",
+      "navbar_navbar",
+      "page_signuppage",
+      "protectedroute_protectedroute"
+    ],
+    "18": [
+      "components_ui_drawer_tsx",
+      "drawer_cn",
+      "drawer_drawer",
+      "drawer_drawerclose",
+      "drawer_drawerdescription",
+      "drawer_draweroverlay",
+      "drawer_drawerportal",
+      "drawer_drawertitle",
+      "drawer_drawertrigger"
+    ],
+    "19": [
+      "rag_service_retriever_py",
+      "retriever_call_gemini",
+      "retriever_call_llm",
+      "retriever_call_ollama",
+      "retriever_call_openai",
+      "retriever_fallback_answer",
+      "retriever_rationale_1",
+      "retriever_rationale_201"
+    ],
+    "20": [
+      "components_ui_use_toast_ts",
+      "use_toast_addtoremovequeue",
+      "use_toast_dispatch",
+      "use_toast_genid",
+      "use_toast_reducer",
+      "use_toast_toast",
+      "use_toast_usetoast"
+    ],
+    "21": [
+      "breadcrumb_breadcrumb",
+      "breadcrumb_breadcrumbellipsis",
+      "breadcrumb_breadcrumblink",
+      "breadcrumb_breadcrumbpage",
+      "breadcrumb_breadcrumbseparator",
+      "breadcrumb_cn",
+      "components_ui_breadcrumb_tsx"
+    ],
+    "22": [
+      "components_ui_pagination_tsx",
+      "pagination_cn",
+      "pagination_pagination",
+      "pagination_paginationcontent",
+      "pagination_paginationellipsis",
+      "pagination_paginationitem",
+      "pagination_paginationnext"
+    ],
+    "23": [
+      "clients_fetchdata",
+      "clients_getseveritycolor",
+      "clients_getstatuscolor",
+      "clients_gettrustscorecolor",
+      "clients_gettypeicon",
+      "components_pages_clients_tsx"
+    ],
+    "24": [
+      "components_pages_rag_assistant_tsx",
+      "rag_assistant_fetchstatus",
+      "rag_assistant_handlekeydown",
+      "rag_assistant_handlereindex",
+      "rag_assistant_sendmessage",
+      "rag_assistant_severitycolor"
+    ],
+    "25": [
+      "components_ui_dialog_tsx",
+      "dialog_dialog",
+      "dialog_dialogclose",
+      "dialog_dialogoverlay",
+      "dialog_dialogportal",
+      "dialog_dialogtrigger"
+    ],
+    "26": [
+      "components_ui_menubar_tsx",
+      "menubar_cn",
+      "menubar_menubarlabel",
+      "menubar_menubarportal",
+      "menubar_menubarradioitem",
+      "menubar_menubarsubcontent"
+    ],
+    "27": [
+      "components_ui_form_tsx",
+      "form_cn",
+      "form_formcontrol",
+      "form_formdescription",
+      "form_formmessage"
+    ],
+    "28": [
+      "components_ui_table_tsx",
+      "table_cn",
+      "table_table",
+      "table_tablebody",
+      "table_tableheader"
+    ],
+    "29": [
+      "components_ui_context_menu_tsx",
+      "context_menu_cn",
+      "context_menu_contextmenu",
+      "context_menu_contextmenulabel",
+      "context_menu_contextmenuradioitem"
+    ],
+    "30": [
+      "components_ui_navigation_menu_tsx",
+      "navigation_menu_cn",
+      "navigation_menu_navigationmenucontent",
+      "navigation_menu_navigationmenutrigger",
+      "navigation_menu_navigationmenuviewport"
+    ],
+    "31": [
+      "carousel_carousel",
+      "carousel_carouselnext",
+      "carousel_cn",
+      "carousel_usecarousel",
+      "components_ui_carousel_tsx"
+    ],
+    "32": [
+      "routes_trust_js",
+      "trust_builddefaultrulebasedscore",
+      "trust_callmlservice",
+      "trust_extractfeaturesfromreport",
+      "trust_normalizemlpredictions"
+    ],
+    "33": [
+      "components_pages_feed_parser_tsx",
+      "feed_parser_drawgraph",
+      "feed_parser_feedparser",
+      "feed_parser_handleconverttostix"
+    ],
+    "34": [
+      "card_carddescription",
+      "card_cardfooter",
+      "card_cn",
+      "components_ui_card_tsx"
+    ],
+    "35": [
+      "components_ui_item_tsx",
+      "item_cn",
+      "item_itemgroup",
+      "item_itemseparator"
+    ],
+    "36": [
+      "components_ui_input_otp_tsx",
+      "input_otp_cn",
+      "input_otp_inputotp",
+      "input_otp_inputotpgroup"
+    ],
+    "37": [
+      "alert_dialog_alertdialog",
+      "alert_dialog_alertdialogdescription",
+      "alert_dialog_cn",
+      "components_ui_alert_dialog_tsx"
+    ],
+    "38": [
+      "accordion_accordion",
+      "accordion_accordionitem",
+      "accordion_accordiontrigger",
+      "components_ui_accordion_tsx"
+    ],
+    "39": [
+      "components_ui_dropdown_menu_tsx",
+      "dropdown_menu_cn",
+      "dropdown_menu_dropdownmenu",
+      "dropdown_menu_dropdownmenusubcontent"
+    ],
+    "40": [
+      "components_ui_toggle_group_tsx",
+      "toggle_group_cn",
+      "toggle_group_togglegroup",
+      "toggle_group_togglegroupitem"
+    ],
+    "41": [
+      "config_database_js",
+      "database_initializetables",
+      "database_testconnection"
+    ],
+    "42": [
+      "components_ui_radio_group_tsx",
+      "radio_group_radiogroup",
+      "radio_group_radiogroupitem"
+    ],
+    "43": [
+      "components_ui_scroll_area_tsx",
+      "scroll_area_scrollarea",
+      "scroll_area_scrollbar"
+    ],
+    "44": [
+      "avatar_avatar",
+      "avatar_avatarfallback",
+      "components_ui_avatar_tsx"
+    ],
+    "45": [
+      "chart_cn",
+      "chart_usechart",
+      "components_ui_chart_tsx"
+    ],
+    "46": [
+      "components_ui_slider_tsx",
+      "slider_cn",
+      "slider_slider"
+    ],
+    "47": [
+      "command_cn",
+      "command_commanditem",
+      "components_ui_command_tsx"
+    ],
+    "48": [
+      "components_ui_tabs_tsx",
+      "tabs_cn",
+      "tabs_tabs"
+    ],
+    "49": [
+      "components_ui_popover_tsx",
+      "popover_popover",
+      "popover_popovertrigger"
+    ],
+    "50": [
+      "lib_utils_ts",
+      "utils_cn"
+    ],
+    "51": [
+      "components_sidebar_tsx",
+      "sidebar_sidebar"
+    ],
+    "52": [
+      "components_landingfooter_tsx",
+      "landingfooter_landingfooter"
+    ],
+    "53": [
+      "components_landingnavbar_tsx",
+      "landingnavbar_landingnavbar"
+    ],
+    "54": [
+      "components_theme_provider_tsx",
+      "theme_provider_themeprovider"
+    ],
+    "55": [
+      "components_theme_toggle_tsx",
+      "theme_toggle_themetoggle"
+    ],
+    "56": [
+      "components_pages_feed_extractor_tsx",
+      "feed_extractor_feedextractor"
+    ],
+    "57": [
+      "components_pages_dashboard_overview_tsx",
+      "dashboard_overview_fetchdashboarddata"
+    ],
+    "58": [
+      "components_pages_policy_validation_tsx",
+      "policy_validation_policyvalidation"
+    ],
+    "59": [
+      "components_pages_trust_provenance_tsx",
+      "trust_provenance_fetchalldata"
+    ],
+    "60": [
+      "blockchain_metrics_blockchainmetrics",
+      "components_pages_blockchain_metrics_tsx"
+    ],
+    "61": [
+      "components_pages_taxii_server_tsx",
+      "taxii_server_taxiiserver"
+    ],
+    "62": [
+      "components_ui_kbd_tsx",
+      "kbd_cn"
+    ],
+    "63": [
+      "components_ui_tooltip_tsx",
+      "tooltip_tooltipcontent"
+    ],
+    "64": [
+      "checkbox_checkbox",
+      "components_ui_checkbox_tsx"
+    ],
+    "65": [
+      "components_ui_spinner_tsx",
+      "spinner_spinner"
+    ],
+    "66": [
+      "collapsible_collapsible",
+      "components_ui_collapsible_tsx"
+    ],
+    "67": [
+      "components_ui_empty_tsx",
+      "empty_cn"
+    ],
+    "68": [
+      "components_ui_switch_tsx",
+      "switch_switch"
+    ],
+    "69": [
+      "components_ui_skeleton_tsx",
+      "skeleton_skeleton"
+    ],
+    "70": [
+      "components_ui_input_group_tsx",
+      "input_group_cn"
+    ],
+    "71": [
+      "components_ui_label_tsx",
+      "label_label"
+    ],
+    "72": [
+      "components_ui_textarea_tsx",
+      "textarea_cn"
+    ],
+    "73": [
+      "button_group_buttongroup",
+      "components_ui_button_group_tsx"
+    ],
+    "74": [
+      "components_ui_input_tsx",
+      "input_input"
+    ],
+    "75": [
+      "components_ui_separator_tsx",
+      "separator_separator"
+    ],
+    "76": [
+      "components_ui_field_tsx",
+      "field_cn"
+    ],
+    "77": [
+      "calendar_cn",
+      "components_ui_calendar_tsx"
+    ],
+    "78": [
+      "components_ui_toggle_tsx",
+      "toggle_toggle"
+    ],
+    "79": [
+      "components_ui_use_mobile_tsx",
+      "use_mobile_useismobile"
+    ],
+    "80": [
+      "components_ui_hover_card_tsx",
+      "hover_card_hovercard"
+    ],
+    "81": [
+      "button_cn",
+      "components_ui_button_tsx"
+    ],
+    "82": [
+      "badge_badge",
+      "components_ui_badge_tsx"
+    ],
+    "83": [
+      "components_ui_sonner_tsx",
+      "sonner_toaster"
+    ],
+    "84": [
+      "aspect_ratio_aspectratio",
+      "components_ui_aspect_ratio_tsx"
+    ],
+    "85": [
+      "components_blockchain_metricschart_tsx",
+      "metricschart_formatxaxis"
+    ],
+    "86": [
+      "components_blockchain_metricscard_tsx",
+      "metricscard_gettrendicon"
+    ],
+    "87": [
+      "rag_proxytorag",
+      "routes_rag_js"
+    ],
+    "88": [
+      "routes_taxii_js",
+      "taxii_getcollectionstats"
+    ],
+    "89": [
+      "metrics_converttocsv",
+      "routes_metrics_js"
+    ],
+    "90": [
+      "routes_stix_js",
+      "stix_generatehash"
+    ],
+    "91": [
+      "auth_generateapikey",
+      "routes_auth_js"
+    ],
+    "92": [
+      "app_layout_tsx",
+      "layout_rootlayout"
+    ],
+    "93": [
+      "app_dashboard_page_tsx",
+      "page_dashboardpage"
+    ],
+    "94": [
+      "app_blockchain_metrics_page_tsx",
+      "page_blockchainmetricspage"
+    ],
+    "95": [
+      "server_js"
+    ],
+    "96": [
+      "rag_service_check_models_py"
+    ],
+    "97": [
+      "components_stat_card_tsx"
+    ],
+    "98": [
+      "components_ui_resizable_tsx"
+    ],
+    "99": [
+      "components_ui_toast_tsx"
+    ],
+    "100": [
+      "components_ui_progress_tsx"
+    ],
+    "101": [
+      "components_ui_toaster_tsx"
+    ],
+    "102": [
+      "routes_feed_extractor_js"
+    ],
+    "103": [
+      "routes_provenance_js"
+    ],
+    "104": [
+      "routes_organizations_js"
+    ],
+    "105": [
+      "routes_blockchain_js"
+    ],
+    "106": [
+      "app_page_tsx"
+    ]
+  },
+  "cohesion": {
+    "0": 0.07,
+    "1": 0.11,
+    "2": 0.07,
+    "3": 0.12,
+    "4": 0.21,
+    "5": 0.18,
+    "6": 0.12,
+    "7": 0.23,
+    "8": 0.21,
+    "9": 0.17,
+    "10": 0.26,
+    "11": 0.31,
+    "12": 0.2,
+    "13": 0.22,
+    "14": 0.2,
+    "15": 0.2,
+    "16": 0.39,
+    "17": 0.22,
+    "18": 0.22,
+    "19": 0.39,
+    "20": 0.48,
+    "21": 0.29,
+    "22": 0.29,
+    "23": 0.33,
+    "24": 0.4,
+    "25": 0.33,
+    "26": 0.33,
+    "27": 0.4,
+    "28": 0.4,
+    "29": 0.4,
+    "30": 0.4,
+    "31": 0.5,
+    "32": 0.4,
+    "33": 0.5,
+    "34": 0.5,
+    "35": 0.5,
+    "36": 0.5,
+    "37": 0.5,
+    "38": 0.5,
+    "39": 0.5,
+    "40": 0.5,
+    "41": 0.67,
+    "42": 0.67,
+    "43": 0.67,
+    "44": 0.67,
+    "45": 0.67,
+    "46": 0.67,
+    "47": 0.67,
+    "48": 0.67,
+    "49": 0.67,
+    "50": 1.0,
+    "51": 1.0,
+    "52": 1.0,
+    "53": 1.0,
+    "54": 1.0,
+    "55": 1.0,
+    "56": 1.0,
+    "57": 1.0,
+    "58": 1.0,
+    "59": 1.0,
+    "60": 1.0,
+    "61": 1.0,
+    "62": 1.0,
+    "63": 1.0,
+    "64": 1.0,
+    "65": 1.0,
+    "66": 1.0,
+    "67": 1.0,
+    "68": 1.0,
+    "69": 1.0,
+    "70": 1.0,
+    "71": 1.0,
+    "72": 1.0,
+    "73": 1.0,
+    "74": 1.0,
+    "75": 1.0,
+    "76": 1.0,
+    "77": 1.0,
+    "78": 1.0,
+    "79": 1.0,
+    "80": 1.0,
+    "81": 1.0,
+    "82": 1.0,
+    "83": 1.0,
+    "84": 1.0,
+    "85": 1.0,
+    "86": 1.0,
+    "87": 1.0,
+    "88": 1.0,
+    "89": 1.0,
+    "90": 1.0,
+    "91": 1.0,
+    "92": 1.0,
+    "93": 1.0,
+    "94": 1.0,
+    "95": 1.0,
+    "96": 1.0,
+    "97": 1.0,
+    "98": 1.0,
+    "99": 1.0,
+    "100": 1.0,
+    "101": 1.0,
+    "102": 1.0,
+    "103": 1.0,
+    "104": 1.0,
+    "105": 1.0,
+    "106": 1.0
+  },
+  "gods": [
+    {
+      "id": "retriever_query",
+      "label": "query()",
+      "edges": 29
+    },
+    {
+      "id": "metricscollector_metricscollector",
+      "label": "MetricsCollector",
+      "edges": 17
+    },
+    {
+      "id": "metricscalculator_metricscalculator",
+      "label": "MetricsCalculator",
+      "edges": 16
+    },
+    {
+      "id": "systemmetrics_systemmetrics",
+      "label": "SystemMetrics",
+      "edges": 14
+    },
+    {
+      "id": "taxii_client_example_threatchaintaxiiclient",
+      "label": "ThreatChainTAXIIClient",
+      "edges": 13
+    },
+    {
+      "id": "ruleengine_ruleengine",
+      "label": "RuleEngine",
+      "edges": 13
+    },
+    {
+      "id": "index_trustengine",
+      "label": "TrustEngine",
+      "edges": 12
+    },
+    {
+      "id": "trustcalculator_trustcalculator",
+      "label": "TrustCalculator",
+      "edges": 12
+    },
+    {
+      "id": "trusteventemitter_trusteventemitter",
+      "label": "TrustEventEmitter",
+      "edges": 11
+    },
+    {
+      "id": "metricsstorage_metricsstorage",
+      "label": "MetricsStorage",
+      "edges": 10
+    }
+  ],
+  "surprises": [
+    {
+      "source": "handleLogin()",
+      "target": "Alert()",
+      "source_files": [
+        "app/login/page.tsx",
+        "components/ui/alert.tsx"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `handleLogin()` unexpectedly reaches hub `Alert()`"
+    },
+    {
+      "source": "Navbar()",
+      "target": "useAuth()",
+      "source_files": [
+        "components/navbar.tsx",
+        "app/contexts/AuthContext.tsx"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "ProtectedRoute()",
+      "target": "useAuth()",
+      "source_files": [
+        "components/ProtectedRoute.tsx",
+        "app/contexts/AuthContext.tsx"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "_background_index()",
+      "target": "get_collection()",
+      "source_files": [
+        "rag-service/app.py",
+        "rag-service/indexer.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; peripheral node `_background_index()` unexpectedly reaches hub `get_collection()`"
+    },
+    {
+      "source": "query()",
+      "target": "_get_model()",
+      "source_files": [
+        "rag-service/retriever.py",
+        "rag-service/indexer.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `query()` connect `Community 0` to `Community 8`, `Community 3`, `Community 19`, `Community 5`?",
+      "why": "High betweenness centrality (0.060) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `TrustEngine` connect `Community 3` to `Community 0`, `Community 10`?",
+      "why": "High betweenness centrality (0.018) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `_get_model()` connect `Community 5` to `Community 0`?",
+      "why": "High betweenness centrality (0.011) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 26 inferred relationships involving `query()` (e.g. with `_get_model()` and `get_collection()`) actually correct?",
+      "why": "`query()` has 26 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `Load trained models and preprocessing components`, `Preprocess features for model prediction`, `Main prediction endpoint` to the rest of the system?",
+      "why": "17 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.07 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 1` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.11 - nodes in this community are weakly interconnected."
+    }
+  ]
+}

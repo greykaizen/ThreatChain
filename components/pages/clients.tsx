@@ -76,7 +76,7 @@ export default function Organizations() {
       }
 
       // Fetch organizations
-      const orgsRes = await fetch('http://localhost:3001/api/organizations', {
+      const orgsRes = await fetch('/api/organizations', {
         headers: headers
       })
       const orgsData = await orgsRes.json()
@@ -86,7 +86,7 @@ export default function Organizations() {
       }
 
       // Fetch recent reports
-      const reportsRes = await fetch('http://localhost:3001/api/stix/reports?limit=10', {
+      const reportsRes = await fetch('/api/stix/reports?limit=10', {
         headers: headers
       })
       const reportsData = await reportsRes.json()
@@ -107,7 +107,7 @@ export default function Organizations() {
       }
 
       // Fetch activity
-      const activityRes = await fetch('http://localhost:3001/api/organizations/activity?limit=10', {
+      const activityRes = await fetch('/api/organizations/activity?limit=10', {
         headers: headers
       })
       const activityData = await activityRes.json()

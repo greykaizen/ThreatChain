@@ -42,7 +42,7 @@ const SUGGESTED_QUESTIONS = [
   "Summarize recent threat intelligence activity",
 ]
 
-const API_BASE = "http://localhost:3001/api"
+const API_BASE = "/api"
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function RagAssistant() {

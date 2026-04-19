@@ -20,20 +20,21 @@ async function deployContract() {
 
   try {
     // Check environment variables
-    if (!process.env.INFURA_API_KEY) {
-      throw new Error('INFURA_API_KEY not found in .env file');
+    const rpcUrl = process.env.ETHEREUM_RPC_URL;
+    const privateKey = process.env.ETHEREUM_PRIVATE_KEY;
+
+    if (!rpcUrl) {
+      throw new Error('ETHEREUM_RPC_URL not found in .env file');
     }
-    if (!process.env.ETHEREUM_PRIVATE_KEY) {
+    if (!privateKey) {
       throw new Error('ETHEREUM_PRIVATE_KEY not found in .env file');
     }
 
-    // Connect to Sepolia testnet via Infura
-    const provider = new ethers.JsonRpcProvider(
-      `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`
-    );
+    // Connect to Sepolia testnet via provided RPC (Alchemy/Infura)
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
 
     // Create wallet
-    const wallet = new ethers.Wallet(process.env.ETHEREUM_PRIVATE_KEY, provider);
+    const wallet = new ethers.Wallet(privateKey, provider);
     console.log('📍 Deploying from address:', wallet.address);
 
     // Check balance

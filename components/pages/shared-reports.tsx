@@ -53,7 +53,7 @@ export default function SharedReports() {
         headers['Authorization'] = `Bearer ${token}`
       }
       
-      const response = await fetch('http://localhost:3001/api/stix/reports?limit=50', {
+      const response = await fetch('/api/stix/reports?limit=50', {
         headers: headers
       })
       const data = await response.json()
@@ -103,7 +103,7 @@ export default function SharedReports() {
         headers['Authorization'] = `Bearer ${token}`
       }
       
-      const response = await fetch(`http://localhost:3001/api/stix/reports/${reportId}`, {
+      const response = await fetch(`/api/stix/reports/${reportId}`, {
         method: 'DELETE',
         headers: headers
       })

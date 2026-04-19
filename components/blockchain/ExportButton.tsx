@@ -23,9 +23,8 @@ export default function ExportButton({
     try {
       // Call API to export
       const response = await fetch(
-        `http://localhost:3001/api/blockchain/metrics/export?range=${timeRange}&format=${format}`
+        `/api/blockchain/metrics/export?range=${timeRange}&format=${format}`
       );
-
       if (!response.ok) {
         throw new Error("Export failed");
       }

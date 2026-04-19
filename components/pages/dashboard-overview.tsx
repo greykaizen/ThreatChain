@@ -45,15 +45,15 @@ export default function DashboardOverview() {
   const fetchDashboardData = async () => {
     try {
       // Fetch STIX stats
-      const stixRes = await fetch("http://localhost:3001/api/stix/stats")
+      const stixRes = await fetch("/api/stix/stats")
       const stixData = await stixRes.json()
 
       // Fetch blockchain metrics (same as blockchain-metrics page - this works!)
-      const metricsRes = await fetch("http://localhost:3001/api/blockchain/metrics")
+      const metricsRes = await fetch("/api/blockchain/metrics")
       const metricsData = await metricsRes.json()
 
       // Fetch historical metrics for charts (same as blockchain-metrics page)
-      const historyRes = await fetch("http://localhost:3001/api/blockchain/metrics/history?range=24h")
+      const historyRes = await fetch("/api/blockchain/metrics/history?range=24h")
       const historyData = await historyRes.json()
 
       console.log("Dashboard Data:", { stixData, metricsData, historyData })

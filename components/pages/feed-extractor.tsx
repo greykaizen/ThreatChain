@@ -39,7 +39,7 @@ export default function FeedExtractor() {
       setIsLoading(true)
       setError(null)
 
-      const response = await fetch('http://localhost:3001/api/feed-extractor/fetch', {
+      const response = await fetch('/api/feed-extractor/fetch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -2,111 +2,105 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 
 interface User {
   id: string
   email: string
   type: 'user' | 'organization'
-  firstName?: string
-  lastName?: string
+  fullName?: string
   orgName?: string
 }
 
 interface AuthContextType {
   user: User | null
-  token: string | null
   isLoading: boolean
-  login: (token: string, userType: string, email: string) => void
   logout: () => void
-  clearAuthOnly: () => void
   isAuthenticated: boolean
+  supabaseUser: SupabaseUser | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
-    // Check for existing token on mount
-    const storedToken = localStorage.getItem('token')
-    const userType = localStorage.getItem('userType')
-    const userEmail = localStorage.getItem('userEmail')
+    const getUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session?.user) {
+          setSupabaseUser(session.user)
+          
+          // Fetch additional profile data from our user_profiles table
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
 
-    if (storedToken) {
-      // Verify token with backend
-      verifyToken(storedToken, userType, userEmail)
-    } else {
-      setIsLoading(false)
-    }
-  }, [])
-
-  const verifyToken = async (token: string, userType: string | null, email: string | null) => {
-    try {
-      const response = await fetch('http://localhost:3001/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            type: (profile?.role === 'admin' ? 'organization' : 'user') as 'user' | 'organization',
+            fullName: profile?.full_name,
+            orgName: profile?.organization_id // In a real app, join with organizations table
+          })
         }
+      } catch (error) {
+        console.error('Error fetching auth session:', error)
+      } finally {
+        setIsLoading(false)
+      }
+
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+          setSupabaseUser(session.user)
+          // Re-fetch profile on sign in
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            type: (profile?.role === 'admin' ? 'organization' : 'user') as 'user' | 'organization',
+            fullName: profile?.full_name
+          })
+        } else {
+          setSupabaseUser(null)
+          setUser(null)
+        }
+        setIsLoading(false)
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success) {
-          setUser(data.data)
-          setToken(token)
-        } else {
-          // Invalid token, clear storage
-          clearAuth()
-        }
-      } else {
-        // Token verification failed
-        clearAuth()
-      }
-    } catch (error) {
-      console.error('Token verification failed:', error)
-      clearAuth()
-    } finally {
-      setIsLoading(false)
+      return () => subscription.unsubscribe()
     }
-  }
 
-  const login = (newToken: string, userType: string, email: string) => {
-    localStorage.setItem('token', newToken)
-    localStorage.setItem('userType', userType)
-    localStorage.setItem('userEmail', email)
-    // Don't set token immediately - wait for verification
-    verifyToken(newToken, userType, email)
-  }
+    getUser()
+  }, [])
 
-  const logout = () => {
-    clearAuth()
+  const logout = async () => {
+    await supabase.auth.signOut()
     router.push('/login')
-  }
-
-  const clearAuth = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userType')
-    localStorage.removeItem('userEmail')
-    setToken(null)
-    setUser(null)
-  }
-
-  const clearAuthOnly = () => {
-    clearAuth()
   }
 
   return (
     <AuthContext.Provider value={{
       user,
-      token,
+      supabaseUser,
       isLoading,
-      login,
       logout,
-      clearAuthOnly,
-      isAuthenticated: !!token && !!user
+      isAuthenticated: !!supabaseUser
     }}>
       {children}
     </AuthContext.Provider>

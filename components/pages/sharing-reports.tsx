@@ -127,7 +127,7 @@ export default function SharingReports() {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await fetch('http://localhost:3001/api/stix/reports?limit=50')
+      const response = await fetch('/api/stix/reports?limit=50')
       const data = await response.json()
       
       if (data.success && data.data.reports) {
@@ -187,7 +187,7 @@ export default function SharingReports() {
     if (!confirmed) return
 
     try {
-      const response = await fetch(`http://localhost:3001/api/stix/reports/${reportId}`, {
+      const response = await fetch(`/api/stix/reports/${reportId}`, {
         method: 'DELETE'
       })
 

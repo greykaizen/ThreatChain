@@ -27,18 +27,24 @@ class EthereumService {
 
       // Determine which network to use
       const useLocalGeth = process.env.ETHEREUM_USE_LOCAL === 'true';
+      const rpcUrl = process.env.ETHEREUM_RPC_URL;
+      const infuraKey = process.env.INFURA_API_KEY;
       
       if (useLocalGeth) {
         // Connect to local Geth node
-        const rpcUrl = process.env.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545';
-        this.provider = new ethers.JsonRpcProvider(rpcUrl);
+        const localUrl = process.env.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545';
+        this.provider = new ethers.JsonRpcProvider(localUrl);
         console.log('🔗 Connecting to local Geth node...');
-      } else if (process.env.INFURA_API_KEY) {
+      } else if (rpcUrl) {
+        // Connect via direct RPC URL (Alchemy)
+        this.provider = new ethers.JsonRpcProvider(rpcUrl);
+        console.log('🔗 Connecting to Ethereum via RPC (Alchemy/Custom)...');
+      } else if (infuraKey) {
         // Connect to Sepolia testnet via Infura
         this.provider = new ethers.JsonRpcProvider(
-          `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`
+          `https://sepolia.infura.io/v3/${infuraKey}`
         );
-        console.log('🔗 Connecting to Sepolia testnet...');
+        console.log('🔗 Connecting to Sepolia testnet via Infura...');
       } else {
         console.log('ℹ️  No Ethereum network configured');
         return;

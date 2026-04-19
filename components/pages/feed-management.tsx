@@ -1047,7 +1047,7 @@ function KnowledgeGraphPreview({ attributes, csvData }: { attributes: FeedAttrib
 
     // Send to backend
     try {
-      await fetch('http://localhost:3001/api/stix/convert', {
+      await fetch('/api/stix/convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

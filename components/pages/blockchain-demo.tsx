@@ -46,7 +46,7 @@ export default function BlockchainDemo() {
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/health')
+        const response = await fetch('/api/health')
         if (response.ok) {
           setBackendStatus('online')
         } else {
@@ -111,7 +111,7 @@ export default function BlockchainDemo() {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        uploadResponse = await fetch('http://localhost:3001/api/stix/upload', {
+        uploadResponse = await fetch('/api/stix/upload', {
           method: 'POST',
           headers: headers,
           body: formData

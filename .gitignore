@@ -279,3 +279,5 @@ uploads/*
 # Database
 *.sql
 *.db
+.vercel
+.env*.local

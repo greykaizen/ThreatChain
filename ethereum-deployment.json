@@ -1,0 +1,6 @@
+{
+  "network": "sepolia",
+  "contractName": "ThreatIntelRegistry",
+  "deployerAddress": "0x10534384e08F90CbBc187ea5cdf77968503dd1e4",
+  "instructions": "Deploy contract manually via Remix and update .env with contract address"
+}

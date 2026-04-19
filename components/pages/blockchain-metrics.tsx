@@ -79,7 +79,7 @@ export default function BlockchainMetrics() {
   const fetchMetrics = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3001/api/blockchain/metrics"
+        "/api/blockchain/metrics"
       );
       if (!response.ok) throw new Error("Failed to fetch metrics");
 
@@ -99,7 +99,7 @@ export default function BlockchainMetrics() {
   const fetchHistorical = async (range: string) => {
     try {
       const response = await fetch(
-        `http://localhost:3001/api/blockchain/metrics/history?range=${range}`
+        `/api/blockchain/metrics/history?range=${range}`
       );
       if (!response.ok) throw new Error("Failed to fetch historical data");
 

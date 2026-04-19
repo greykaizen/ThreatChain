@@ -62,7 +62,7 @@ export default function TaxiiServer() {
     result: null
   })
 
-  const TAXII_BASE_URL = "http://localhost:3001/api/taxii"
+  const TAXII_BASE_URL = "/api/taxii"
 
   useEffect(() => {
     fetchTaxiiData()
@@ -86,7 +86,7 @@ export default function TaxiiServer() {
         headers['Authorization'] = `Bearer ${token}`
       }
       
-      const reportsRes = await fetch('http://localhost:3001/api/stix/reports?limit=50', {
+      const reportsRes = await fetch('/api/stix/reports?limit=50', {
         headers: headers
       })
       const reportsData = await reportsRes.json()
@@ -97,7 +97,7 @@ export default function TaxiiServer() {
           reportsData.data.reports.map(async (report: any) => {
             try {
               const blockchainRes = await fetch(
-                `http://localhost:3001/api/blockchain/transactions?reportId=${report.id}`
+                `/api/blockchain/transactions?reportId=${report.id}`
               )
               const blockchainData = await blockchainRes.json()
               
@@ -183,21 +183,21 @@ export default function TaxiiServer() {
         headers['Authorization'] = `Bearer ${token}`
       }
       
-      const response = await fetch(`http://localhost:3001/api/stix/reports/${report.id}`, {
+      const response = await fetch(`/api/stix/reports/${report.id}`, {
         headers: headers
       })
       const data = await response.json()
       
-      if (!data.success || !data.data.report) {
+      if (!data.success || !data.data) {
         throw new Error('Failed to fetch report content')
       }
 
       // Step 2: Calculate fresh hash from content
-      const stixContent = JSON.parse(data.data.report.content)
+      const stixContent = data.data.content
       const freshHash = await calculateHash(stixContent)
 
       // Step 3: Verify fresh hash against Geth blockchain
-      const verifyResponse = await fetch('http://localhost:3001/api/blockchain/verify-hash', {
+      const verifyResponse = await fetch('/api/blockchain/verify-hash', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -249,7 +249,7 @@ export default function TaxiiServer() {
         headers['Authorization'] = `Bearer ${token}`
       }
       
-      const response = await fetch(`http://localhost:3001/api/stix/reports/${report.id}`, {
+      const response = await fetch(`/api/stix/reports/${report.id}`, {
         headers: headers
       })
       const data = await response.json()
@@ -275,7 +275,7 @@ export default function TaxiiServer() {
         headers['Authorization'] = `Bearer ${token}`
       }
       
-      const response = await fetch(`http://localhost:3001/api/stix/reports/${report.id}`, {
+      const response = await fetch(`/api/stix/reports/${report.id}`, {
         headers: headers
       })
       const data = await response.json()

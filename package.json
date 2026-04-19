@@ -16,6 +16,7 @@
     "test": "node test-api.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -44,6 +45,10 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.103.3",
+    "@types/d3": "^7.4.3",
+    "@vercel/next-browser": "^0.7.1",
     "axios": "^1.6.2",
     "bcrypt": "^6.0.0",
     "body-parser": "^1.20.2",
@@ -52,6 +57,7 @@
     "cmdk": "^1.1.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
+    "d3": "^7.9.0",
     "date-fns": "^4.1.0",
     "dotenv": "^16.3.1",
     "embla-carousel-react": "^8.6.0",
@@ -75,6 +81,8 @@
     "tailwind-merge": "^3.4.0",
     "uuid": "^9.0.1",
     "vaul": "^1.1.2",
+    "vis-data": "^8.0.3",
+    "vis-network": "^10.0.2",
     "xlsx": "^0.18.5",
     "zod": "^4.1.13"
   },
@@ -87,6 +95,7 @@
     "hardhat": "^2.27.1",
     "nodemon": "^3.0.2",
     "postcss": "^8.5.6",
+    "supabase": "^2.92.1",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3"
   },

@@ -64,12 +64,12 @@ export default function TrustProvenance() {
 
   const fetchAllData = async () => {
     try {
-      const demoRes = await fetch('http://localhost:3001/api/trust/score-demo');
+      const demoRes = await fetch('/api/trust/score-demo');
       const demoData = await demoRes.json();
       setTrustData(demoData);
       setMlServiceOnline(demoData?.data?.mlServiceOnline ?? false);
 
-      const dsRes = await fetch('http://localhost:3001/api/trust/dataset-results');
+      const dsRes = await fetch('/api/trust/dataset-results');
       const dsData = await dsRes.json();
       if (dsData.success) {
         setDatasetResults(dsData);
