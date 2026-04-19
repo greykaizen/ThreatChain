@@ -283,3 +283,4 @@ uploads/*
 .env*.local
 .agents/
 .gemini/
+graphify-out/
