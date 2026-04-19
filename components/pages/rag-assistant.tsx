@@ -375,7 +375,7 @@ export default function RagAssistant() {
           </div>
           */}
 
-          {/* Setup info card */}
+          {/* Setup info card — commented out
           {ragStatus && !ragStatus.online && (
             <div style={cardStyle} className="p-4 border-orange-200 bg-orange-50">
               <div className="flex items-center gap-2 mb-2">
@@ -394,6 +394,7 @@ export default function RagAssistant() {
               </pre>
             </div>
           )}
+          */}
 
           {/* LLM info card - Commented out
           {ragStatus?.online && (
