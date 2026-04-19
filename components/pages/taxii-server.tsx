@@ -269,7 +269,7 @@ export default function TaxiiServer() {
         headers: headers
       })
       const data = await response.json()
-      const stixContent = JSON.parse(data.data.report.content)
+      const stixContent = data.data.content
       
       const blob = new Blob([JSON.stringify(stixContent, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
@@ -295,7 +295,7 @@ export default function TaxiiServer() {
         headers: headers
       })
       const data = await response.json()
-      const stixContent = JSON.parse(data.data.report.content)
+      const stixContent = data.data.content
       
       const packageWithCert = {
         stix_report: stixContent,
