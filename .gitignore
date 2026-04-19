@@ -281,3 +281,5 @@ uploads/*
 *.db
 .vercel
 .env*.local
+.agents/
+.gemini/
