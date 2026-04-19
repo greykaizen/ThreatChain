@@ -19,41 +19,34 @@ class EthereumService {
 
   initialize() {
     try {
-      // Check if Ethereum is configured
+      console.log('📡 Initializing Ethereum Service...');
+      
+      // 1. Check for Private Key (Required)
       if (!process.env.ETHEREUM_PRIVATE_KEY) {
-        console.log('ℹ️  Ethereum integration not configured (optional)');
+        console.warn('❌ ETHEREUM_PRIVATE_KEY missing from environment');
         return;
       }
 
-      // Determine which network to use
+      // 2. Determine Network
       const useLocalGeth = process.env.ETHEREUM_USE_LOCAL === 'true';
       const rpcUrl = process.env.ETHEREUM_RPC_URL;
-      const infuraKey = process.env.INFURA_API_KEY;
       
       if (useLocalGeth) {
-        // Connect to local Geth node
         const localUrl = process.env.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545';
         this.provider = new ethers.JsonRpcProvider(localUrl);
-        console.log('🔗 Connecting to local Geth node...');
+        console.log('🔗 Mode: Local Geth');
       } else if (rpcUrl) {
-        // Connect via direct RPC URL (Alchemy)
         this.provider = new ethers.JsonRpcProvider(rpcUrl);
-        console.log('🔗 Connecting to Ethereum via RPC (Alchemy/Custom)...');
-      } else if (infuraKey) {
-        // Connect to Sepolia testnet via Infura
-        this.provider = new ethers.JsonRpcProvider(
-          `https://sepolia.infura.io/v3/${infuraKey}`
-        );
-        console.log('🔗 Connecting to Sepolia testnet via Infura...');
+        console.log('🔗 Mode: Remote RPC (Alchemy)');
       } else {
-        console.log('ℹ️  No Ethereum network configured');
+        console.warn('❌ No RPC URL found (ETHEREUM_RPC_URL missing)');
         return;
       }
 
-      // Create wallet
+      // 3. Create wallet
       this.wallet = new ethers.Wallet(process.env.ETHEREUM_PRIVATE_KEY, this.provider);
 
-      // Connect to contract if address is provided
+      // 4. Connect to contract
       if (process.env.ETHEREUM_CONTRACT_ADDRESS) {
         this.contract = new ethers.Contract(
           process.env.ETHEREUM_CONTRACT_ADDRESS,
@@ -61,15 +54,14 @@ class EthereumService {
           this.wallet
         );
         this.isEnabled = true;
-        console.log('✅ Ethereum integration enabled');
-        console.log('   Network:', useLocalGeth ? 'Private Geth (localhost:8545)' : 'Sepolia Testnet');
-        console.log('   Wallet:', this.wallet.address);
+        console.log('✅ Ethereum Service Operational');
         console.log('   Contract:', process.env.ETHEREUM_CONTRACT_ADDRESS);
+        console.log('   Wallet:', this.wallet.address);
       } else {
-        console.log('ℹ️  Ethereum configured but no contract address provided');
+        console.warn('❌ ETHEREUM_CONTRACT_ADDRESS missing');
       }
     } catch (error) {
-      console.error('⚠️  Ethereum initialization failed:', error.message);
+      console.error('💥 Ethereum init failed:', error.message);
       this.isEnabled = false;
     }
   }

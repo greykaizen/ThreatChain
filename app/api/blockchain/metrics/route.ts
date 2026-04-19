@@ -30,8 +30,15 @@ export async function GET() {
         }
         liveBlockNumber = blockNumber;
       }
-    } catch (bcErr) {
+    } catch (bcErr: any) {
       console.error('Error fetching live blockchain data:', bcErr);
+      // Add diagnostic info to the response if it fails
+      (metrics as any).diagnostics = {
+        error: bcErr.message,
+        rpcUrlSet: !!process.env.ETHEREUM_RPC_URL,
+        privateKeySet: !!process.env.ETHEREUM_PRIVATE_KEY,
+        useLocal: process.env.ETHEREUM_USE_LOCAL
+      };
     }
 
     // 2. Get latest metrics from blockchain_metrics_history
