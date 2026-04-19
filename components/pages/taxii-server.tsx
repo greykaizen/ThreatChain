@@ -523,9 +523,9 @@ export default function TaxiiServer() {
                 ) : (
                   <>
                     <div className={`p-4 rounded-lg mb-4 ${
-                      verificationModal.result.isValid 
+                      verificationModal.result.isValid || verificationModal.result.freshHash === verificationModal.result.blockchainHash
                         ? 'bg-green-50 border border-green-200' 
-                        : 'bg-indigo-50 border border-indigo-200'
+                        : 'bg-red-50 border border-red-200'
                     }`}>
                       <div className="flex items-center gap-2 mb-2">
                         {verificationModal.result.isValid ? (
@@ -533,21 +533,78 @@ export default function TaxiiServer() {
                             <CheckCircle2 className="w-5 h-5 text-green-600" />
                             <span className="font-bold text-green-900 uppercase tracking-tight">✅ Provenance Verified</span>
                           </>
+                        ) : verificationModal.result.freshHash === verificationModal.result.blockchainHash ? (
+                          <>
+                            <CheckCircle2 className="w-5 h-5 text-green-600" />
+                            <span className="font-bold text-green-900 uppercase tracking-tight">ℹ️ Local Integrity Confirmed</span>
+                          </>
                         ) : (
                           <>
-                            <Shield className="w-5 h-5 text-indigo-600" />
-                            <span className="font-bold text-indigo-900 uppercase tracking-tight">ℹ️ Local Integrity Confirmed</span>
+                            <AlertTriangle className="w-5 h-5 text-red-600" />
+                            <span className="font-bold text-red-900 uppercase tracking-tight">🛑 Content Tampered</span>
                           </>
                         )}
                       </div>
                       <p className="text-sm text-slate-700">
                         {verificationModal.result.isValid
                           ? 'This report is globally verified. The database fingerprint matches the immutable record on the Ethereum ledger.'
-                          : 'The report content is authentic and matches our database records. Note: Global ledger anchoring is currently pending or processing.'}
+                          : verificationModal.result.freshHash === verificationModal.result.blockchainHash
+                          ? 'The report content is authentic and matches our database records. Note: Global ledger anchoring is currently pending or processing.'
+                          : 'Warning: This file has been tampered with! The current content does not match the original verified record.'}
                       </p>
                     </div>
 
                     <div className="space-y-4">
+                      {/* Manual Verification Zone */}
+                      <div className="p-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl">
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Tamper Detection Lab</p>
+                         <div className="flex flex-col items-center justify-center py-4 px-2 text-center">
+                            <p className="text-xs text-slate-500 mb-4 font-medium">Drop an exported STIX file here to verify its content hasn't been modified since archival.</p>
+                            <Input
+                              type="file"
+                              accept=".json"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                
+                                const content = await file.text();
+                                let parsed;
+                                try {
+                                  parsed = JSON.parse(content);
+                                } catch (err) {
+                                  alert("Invalid JSON file");
+                                  return;
+                                }
+
+                                // 1. Recalculate hash exactly like the team's logic
+                                const crypto = require('crypto');
+                                const recalculatedHash = await new Promise<string>((resolve) => {
+                                   const contentString = JSON.stringify(parsed);
+                                   // Note: crypto.subtle is standard in browsers
+                                   const encoder = new TextEncoder();
+                                   const data = encoder.encode(contentString);
+                                   window.crypto.subtle.digest('SHA-256', data).then(buffer => {
+                                      const hashArray = Array.from(new Uint8Array(buffer));
+                                      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                                      resolve(hashHex);
+                                   });
+                                });
+
+                                // 2. Compare and update UI
+                                setVerificationModal(prev => ({
+                                  ...prev,
+                                  result: {
+                                    ...prev.result!,
+                                    freshHash: recalculatedHash,
+                                    isValid: recalculatedHash === prev.result?.blockchainHash
+                                  }
+                                }));
+                              }}
+                              className="text-xs border-none bg-white shadow-sm rounded-lg cursor-pointer"
+                            />
+                         </div>
+                      </div>
+
                       <div>
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">
                            Fingerprint (Database)
@@ -572,13 +629,31 @@ export default function TaxiiServer() {
                                <p className="text-slate-400 uppercase font-bold mb-1">Block Height</p>
                                <p className="text-slate-900 font-mono font-bold">#{verificationModal.result.blockNumber}</p>
                             </div>
-                            <div className="col-span-2">
-                               <p className="text-slate-400 uppercase font-bold mb-1">Ledger Fingerprint (On-Chain)</p>
-                               <p className="text-slate-900 font-mono break-all">{verificationModal.result.blockchainHash}</p>
-                            </div>
                           </div>
                         </div>
                       )}
+                    </div>
+
+                    <div className="mt-6 pt-6 border-t border-slate-100">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Data Portability</p>
+                      <div className="flex gap-3">
+                        <Button 
+                          onClick={() => exportReport(verificationModal.report!)}
+                          variant="outline"
+                          className="flex-1 rounded-xl py-6 font-bold"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Export STIX
+                        </Button>
+                        <Button 
+                          onClick={() => exportWithCertificate(verificationModal.report!, verificationModal.result!)}
+                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-6 font-bold shadow-lg shadow-indigo-100"
+                        >
+                          <Shield className="w-4 h-4 mr-2" />
+                          Verified Certificate
+                        </Button>
+                      </div>
+                    </div>
                       <div>
                         <label className="text-xs font-medium text-gray-700 block mb-1">
                           Transaction Hash:
