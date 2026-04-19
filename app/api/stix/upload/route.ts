@@ -121,33 +121,46 @@ export async function POST(request: Request) {
     } catch (mlErr) {
       console.error('ML Logic Error:', mlErr);
     }
+// 7. Register on Blockchain
+let blockchainResult = { success: false, txHash: null, blockNumber: 0, error: null };
+try {
+  console.log('🔗 Initiating Blockchain Registration for hash:', hash);
 
-    // 7. Register on Blockchain
-    let blockchainResult = { success: false, txHash: null, blockNumber: 0 };
-    try {
-      blockchainResult = await ethereumService.registerReportHash(hash, report.id);
-      
-      if (blockchainResult.success) {
-        await supabase.from('blockchain_transactions').insert({
-          report_id: report.id,
-          report_hash: hash,
-          tx_hash: blockchainResult.txHash,
-          block_number: blockchainResult.blockNumber,
-          gas_used: blockchainResult.gasUsed,
-          status: 'confirmed',
-          confirmation_time: blockchainResult.timestamp
-        });
+  // Force re-init if not enabled
+  if (!ethereumService.isEnabled) {
+    console.log('🔄 Re-initializing Ethereum Service...');
+    ethereumService.initialize();
+  }
 
-        await supabase.from('provenance_records').insert({
-          report_id: report.id,
-          action_type: 'verified',
-          actor: 'System',
-          metadata: { txHash: blockchainResult.txHash }
-        });
-      }
-    } catch (bcErr) {
-      console.error('Blockchain Registration Error:', bcErr);
+  if (ethereumService.isEnabled) {
+    blockchainResult = await ethereumService.registerReportHash(hash, report.id);
+    console.log('📡 Blockchain Result:', JSON.stringify(blockchainResult));
+
+    if (blockchainResult.success) {
+      await supabase.from('blockchain_transactions').insert({
+        report_id: report.id,
+        report_hash: hash,
+        tx_hash: blockchainResult.txHash,
+        block_number: blockchainResult.blockNumber,
+        gas_used: blockchainResult.gasUsed,
+        status: 'confirmed',
+        confirmation_time: blockchainResult.timestamp
+      });
+
+      await supabase.from('provenance_records').insert({
+        report_id: report.id,
+        action_type: 'verified',
+        actor: 'System',
+        metadata: { txHash: blockchainResult.txHash, source: 'live-sepolia' }
+      });
     }
+  } else {
+    console.warn('⚠️ Ethereum Service not enabled - skipping live registration');
+  }
+} catch (bcErr: any) {
+  console.error('❌ Blockchain Registration Exception:', bcErr.message);
+  blockchainResult.error = bcErr.message;
+}
 
     // 8. Index for RAG (Index the canonical text)
     try {

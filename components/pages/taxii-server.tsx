@@ -564,23 +564,30 @@ export default function TaxiiServer() {
                         ? 'bg-green-50 border border-green-200' 
                         : 'bg-red-50 border border-red-200'
                     }`}>
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className=\"flex items-center gap-2 mb-2\">
                         {verificationModal.result.isValid ? (
                           <>
-                            <CheckCircle2 className="w-5 h-5 text-green-600" />
-                            <span className="font-bold text-green-900">✅ VERIFIED</span>
+                            <CheckCircle2 className=\"w-5 h-5 text-green-600\" />
+                            <span className=\"font-bold text-green-900\">✅ VERIFIED</span>
+                          </>
+                        ) : verificationModal.result.freshHash === verificationModal.result.blockchainHash ? (
+                          <>
+                            <Shield className=\"w-5 h-5 text-yellow-600\" />
+                            <span className=\"font-bold text-yellow-900\">⚠️ UNVERIFIED ON-CHAIN</span>
                           </>
                         ) : (
                           <>
-                            <AlertTriangle className="w-5 h-5 text-red-600" />
-                            <span className="font-bold text-red-900">⚠️ TAMPERED</span>
+                            <AlertTriangle className=\"w-5 h-5 text-red-600\" />
+                            <span className=\"font-bold text-red-900\">🛑 CONTENT TAMPERED</span>
                           </>
                         )}
                       </div>
-                      <p className="text-sm">
+                      <p className=\"text-sm\">
                         {verificationModal.result.isValid
-                          ? 'Report content verified against Geth blockchain. Hash exists on immutable blockchain.'
-                          : 'Warning: Hash not found on Geth blockchain! Content may have been modified.'}
+                          ? 'Report content verified against blockchain. Hash exists and matches perfectly.'
+                          : verificationModal.result.freshHash === verificationModal.result.blockchainHash
+                          ? 'Report content matches database record, but no verified blockchain transaction was found for this hash.'
+                          : 'Warning: Current content hash does not match the original record! The data has been modified.'}
                       </p>
                       {verificationModal.result.gethVerified !== undefined && (
                         <p className="text-xs mt-2">
