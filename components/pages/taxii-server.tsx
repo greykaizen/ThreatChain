@@ -165,7 +165,17 @@ export default function TaxiiServer() {
   }
 
   const calculateHash = async (content: any): Promise<string> => {
-    const contentString = JSON.stringify(content)
+    // Canonicalize JSON by sorting keys for consistent hashing
+    const canonicalize = (obj: any): any => {
+      if (obj === null || typeof obj !== 'object') return obj;
+      if (Array.isArray(obj)) return obj.map(canonicalize);
+      return Object.keys(obj).sort().reduce((acc: any, key: string) => {
+        acc[key] = canonicalize(obj[key]);
+        return acc;
+      }, {});
+    };
+
+    const contentString = JSON.stringify(canonicalize(content))
     const encoder = new TextEncoder()
     const data = encoder.encode(contentString)
     const hashBuffer = await crypto.subtle.digest('SHA-256', data)

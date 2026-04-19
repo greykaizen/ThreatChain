@@ -5,8 +5,20 @@ import { SupabaseRAG } from '@/lib/ai/SupabaseRAG'
 import { SupabaseTrustCalculator } from '@/lib/trust-engine/SupabaseTrustCalculator'
 import crypto from 'crypto'
 
-// Import Ethereum Service
+// Using require for the JS blockchain service
 const ethereumService = require('@/blockchain/EthereumService');
+
+/**
+ * Canonicalize JSON object by sorting keys alphabetically
+ */
+function canonicalize(obj: any): any {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(canonicalize);
+  return Object.keys(obj).sort().reduce((acc: any, key: string) => {
+    acc[key] = canonicalize(obj[key]);
+    return acc;
+  }, {});
+}
 
 export async function POST(request: Request) {
   try {
@@ -15,9 +27,11 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { stixBundle, knowledgeGraph, sourceData } = body
 
-    // 1. Generate Hash for the bundle
-    const bundleString = JSON.stringify(stixBundle)
-    const hash = crypto.createHash('sha256').update(bundleString).digest('hex')
+    // Canonicalize for consistent hashing
+    const canonicalContent = JSON.stringify(canonicalize(stixBundle))
+
+    // 1. Generate Hash from canonical content
+    const hash = crypto.createHash('sha256').update(canonicalContent).digest('hex')
 
     // 2. Extract basic info
     const title = sourceData?.fileName || `Report ${new Date().toISOString()}`
@@ -25,7 +39,7 @@ export async function POST(request: Request) {
 
     // 3. Save to Supabase Storage (Archival - Using Admin Client)
     const storagePath = `${hash}-converted.json`
-    const { error: storageError } = await supabaseAdmin.storage.from('reports').upload(storagePath, bundleString, {
+    const { error: storageError } = await supabaseAdmin.storage.from('reports').upload(storagePath, canonicalContent, {
       contentType: 'application/json',
       upsert: true
     })
@@ -37,12 +51,12 @@ export async function POST(request: Request) {
     const { data: publicUrlData } = supabaseAdmin.storage.from('reports').getPublicUrl(storagePath)
     const publicUrl = publicUrlData?.publicUrl || null
 
-    // 4. Save to Supabase DB
+    // 4. Save to Supabase DB (Store the canonicalized bundle)
     const { data: report, error } = await supabase
       .from('stix_reports')
       .upsert({
         title,
-        content: stixBundle,
+        content: canonicalize(stixBundle), // Store canonical version
         hash,
         file_url: publicUrl,
         indicators_count: indicatorsCount,
@@ -59,13 +73,13 @@ export async function POST(request: Request) {
     const calculator = new SupabaseTrustCalculator()
     await calculator.calculate('report', report.id)
 
-    // 6. ML Prediction Trigger (Internal API Call)
+    // 6. ML Prediction Trigger
     try {
       const features = {
         indicator_count: indicatorsCount,
         has_malware: stixBundle.objects?.some((o: any) => o.type === 'malware') ? 1 : 0,
         has_actor: stixBundle.objects?.some((o: any) => o.type === 'threat-actor') ? 1 : 0,
-        complexity_score: bundleString.length / 1000
+        complexity_score: canonicalContent.length / 1000
       };
 
       const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
@@ -109,10 +123,10 @@ export async function POST(request: Request) {
       console.error('Blockchain Registration Error:', bcErr);
     }
 
-    // 8. Trigger RAG Indexing
+    // 8. Trigger RAG Indexing (Index the canonical text)
     try {
       const rag = new SupabaseRAG()
-      await rag.indexReport(report.id, bundleString)
+      await rag.indexReport(report.id, canonicalContent)
     } catch (ragErr) {
       console.error('RAG Indexing failed but report saved:', ragErr)
     }

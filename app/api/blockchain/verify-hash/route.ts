@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+const ethereumService = require('@/blockchain/EthereumService');
 
 export async function POST(request: Request) {
   try {
@@ -10,26 +11,50 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Hash is required' }, { status: 400 })
     }
 
+    // Clean hash (remove 0x if present for DB check)
+    const cleanHash = hash.startsWith('0x') ? hash.substring(2) : hash;
+    const hexHash = hash.startsWith('0x') ? hash : '0x' + hash;
+
     const supabase = await createClient()
 
-    // 1. Check if hash exists in our transaction records
+    // 1. Check local database transaction records
     const { data: tx, error } = await supabase
       .from('blockchain_transactions')
       .select('*')
-      .eq('report_hash', hash)
+      .or(`report_hash.eq.${cleanHash},report_hash.eq.${hexHash}`)
       .eq('status', 'confirmed')
       .maybeSingle()
 
-    if (error) throw error
+    // 2. Cross-verify with Live Ethereum Contract (The ultimate source of truth)
+    let onChainData = { exists: false };
+    try {
+      if (ethereumService.isEnabled) {
+        const result = await ethereumService.verifyReportHash(cleanHash);
+        if (result.success && result.exists) {
+          onChainData = {
+            exists: true,
+            timestamp: result.timestamp,
+            uploader: result.uploader,
+            reportId: result.reportId
+          };
+        }
+      }
+    } catch (bcErr) {
+      console.error('On-chain verification error:', bcErr);
+    }
+
+    const isVerified = !!tx || onChainData.exists;
 
     return NextResponse.json({
       success: true,
-      verified: !!tx,
-      data: tx ? {
+      verified: isVerified,
+      data: isVerified ? {
         exists: true,
-        blockNumber: tx.block_number,
-        timestamp: tx.confirmation_time || tx.created_at,
-        txHash: tx.tx_hash
+        blockNumber: tx?.block_number || null,
+        timestamp: tx?.confirmation_time || onChainData.timestamp || null,
+        txHash: tx?.tx_hash || null,
+        onChainProof: onChainData.exists,
+        uploader: onChainData.uploader || null
       } : { exists: false }
     })
   } catch (error: any) {

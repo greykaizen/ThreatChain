@@ -59,7 +59,11 @@ export async function GET() {
     // 4. Format the response to match the frontend expectations
     const metrics = {
       transaction: {
-        gasPrice: { wei: "0", gwei: parseFloat(liveGasPrice.gwei).toFixed(2), eth: "0" },
+        gasPrice: { 
+          wei: "0", 
+          gwei: liveGasPrice.gwei === "0.00" ? (latestHistory?.gas_fee?.toString() || "1.50") : liveGasPrice.gwei, 
+          eth: "0" 
+        },
         totalTransactions: txCount.count || 0,
         transactionsPerSecond: latestHistory?.tps || 0.01,
         avgGasConsumption: 21000

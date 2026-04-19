@@ -8,6 +8,18 @@ import crypto from 'crypto'
 // Using require for the JS blockchain service
 const ethereumService = require('@/blockchain/EthereumService');
 
+/**
+ * Canonicalize JSON object by sorting keys alphabetically
+ */
+function canonicalize(obj: any): any {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(canonicalize);
+  return Object.keys(obj).sort().reduce((acc: any, key: string) => {
+    acc[key] = canonicalize(obj[key]);
+    return acc;
+  }, {});
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
@@ -29,8 +41,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid JSON content' }, { status: 400 })
     }
 
-    // 1. Generate Hash
-    const hash = crypto.createHash('sha256').update(content).digest('hex')
+    // Canonicalize for consistent hashing
+    const canonicalContent = JSON.stringify(canonicalize(stixBundle))
+
+    // 1. Generate Hash from canonical content
+    const hash = crypto.createHash('sha256').update(canonicalContent).digest('hex')
 
     // 2. Check for duplicate
     const { data: existing } = await supabase
@@ -62,13 +77,13 @@ export async function POST(request: Request) {
     const { data: publicUrlData } = supabaseAdmin.storage.from('reports').getPublicUrl(storagePath)
     const publicUrl = publicUrlData?.publicUrl || null
 
-    // 4. Save to Supabase DB
+    // 4. Save to Supabase DB (Store the canonicalized bundle)
     const { data: report, error } = await supabase
       .from('stix_reports')
       .insert({
         title: title || file.name,
         description: description || 'STIX 2.1 Threat Intelligence Report',
-        content: stixBundle,
+        content: canonicalize(stixBundle), // Store canonical version
         hash,
         file_name: file.name,
         file_size: file.size,
@@ -85,20 +100,18 @@ export async function POST(request: Request) {
     const calculator = new SupabaseTrustCalculator()
     await calculator.calculate('report', report.id)
 
-    // 6. ML Prediction Trigger (Internal API Call)
+    // 6. ML Prediction Trigger
     try {
-      // Mocking features from the STIX bundle for the XGBoost model
       const features = {
         indicator_count: report.indicators_count,
         has_malware: stixBundle.objects?.some((o: any) => o.type === 'malware') ? 1 : 0,
         has_actor: stixBundle.objects?.some((o: any) => o.type === 'threat-actor') ? 1 : 0,
-        complexity_score: JSON.stringify(stixBundle).length / 1000
+        complexity_score: canonicalContent.length / 1000
       };
 
       const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
       const host = request.headers.get('host');
       
-      // Fire and forget ML prediction
       fetch(`${protocol}://${host}/api/ml/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -136,10 +149,10 @@ export async function POST(request: Request) {
       console.error('Blockchain Registration Error:', bcErr);
     }
 
-    // 8. Index for RAG
+    // 8. Index for RAG (Index the canonical text)
     try {
       const rag = new SupabaseRAG()
-      await rag.indexReport(report.id, content)
+      await rag.indexReport(report.id, canonicalContent)
     } catch (ragErr) {
       console.error('RAG Indexing Error:', ragErr);
     }
@@ -150,6 +163,7 @@ export async function POST(request: Request) {
       data: {
         reportId: report.id,
         reportHash: hash,
+        fileSize: file.size,
         blockchain: {
           transactionId: blockchainResult.txHash,
           blockNumber: blockchainResult.blockNumber
