@@ -654,46 +654,6 @@ export default function TaxiiServer() {
                         </Button>
                       </div>
                     </div>
-                      <div>
-                        <label className="text-xs font-medium text-gray-700 block mb-1">
-                          Transaction Hash:
-                        </label>
-                        <code className="block text-xs bg-gray-100 p-2 rounded break-all text-gray-800">
-                          {verificationModal.result.txHash}
-                        </code>
-                      </div>
-                      {verificationModal.result.blockNumber && (
-                        <div>
-                          <label className="text-xs font-medium text-gray-700 block mb-1">
-                            Block Number:
-                          </label>
-                          <span className="text-sm text-gray-800">{verificationModal.result.blockNumber}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {verificationModal.result.isValid && verificationModal.report && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <p className="text-sm text-gray-600 mb-3">Export verified report:</p>
-                        <div className="flex gap-2">
-                          <Button 
-                            onClick={() => exportReport(verificationModal.report!)}
-                            variant="outline"
-                            className="flex-1"
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Export STIX Report
-                          </Button>
-                          <Button 
-                            onClick={() => exportWithCertificate(verificationModal.report!, verificationModal.result!)}
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            <Shield className="w-4 h-4 mr-2" />
-                            Export with Certificate
-                          </Button>
-                        </div>
-                      </div>
-                    )}
                   </>
                 )}
               </div>
