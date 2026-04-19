@@ -59,7 +59,7 @@ export default function Navbar() {
             </DropdownMenuSub>
 
             <DropdownMenuItem asChild className="flex items-center gap-2 py-3 px-3 cursor-pointer group">
-              <a href="https://github.com/josefumis-projects/threatchain" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full">
+              <a href="https://github.com/greykaizen/threatchain" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full">
                 <Heart className="w-4 h-4 text-rose-500 group-hover:fill-rose-500 transition-colors" />
                 <span className="text-sm font-bold text-slate-700">Sponsor on GitHub</span>
               </a>

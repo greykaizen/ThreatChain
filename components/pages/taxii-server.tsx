@@ -47,6 +47,7 @@ const cardStyle = {
 export default function TaxiiServer() {
   const [collections, setCollections] = useState<TaxiiCollection[]>([])
   const [reports, setReports] = useState<TaxiiReport[]>([])
+  const [serverStats, setServerStats] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [copiedHash, setCopiedHash] = useState<string | null>(null)
@@ -72,6 +73,11 @@ export default function TaxiiServer() {
     try {
       setIsLoading(true)
       setError(null)
+
+      // Fetch server status for stats cards
+      const statusRes = await fetch(`${TAXII_BASE_URL}/status`)
+      const statusData = await statusRes.json()
+      setServerStats(statusData)
 
       // Fetch collections
       const collectionsRes = await fetch(`${TAXII_BASE_URL}/threatchain/collections/`)
@@ -338,7 +344,7 @@ export default function TaxiiServer() {
               <Database className="w-5 h-5 text-blue-600" />
               <span className="text-sm font-medium text-gray-700">Total Reports</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{reports.length}</p>
+            <p className="text-2xl font-bold text-gray-900">{serverStats?.statistics?.total_reports || 0}</p>
           </div>
           <div className="p-4 bg-green-50 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -346,7 +352,7 @@ export default function TaxiiServer() {
               <span className="text-sm font-medium text-gray-700">Blockchain Verified</span>
             </div>
             <p className="text-2xl font-bold text-gray-900">
-              {reports.filter(r => r.blockchain_verified).length}
+              {serverStats?.statistics?.blockchain_verified || 0}
             </p>
           </div>
           <div className="p-4 bg-purple-50 rounded-lg">
@@ -354,7 +360,7 @@ export default function TaxiiServer() {
               <Globe className="w-5 h-5 text-purple-600" />
               <span className="text-sm font-medium text-gray-700">Collections</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{collections.length}</p>
+            <p className="text-2xl font-bold text-gray-900">{serverStats?.statistics?.collections || collections.length}</p>
           </div>
         </div>
       </div>
