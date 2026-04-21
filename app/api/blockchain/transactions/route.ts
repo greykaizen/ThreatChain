@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       query = query.eq('report_id', reportId)
     }
 
-    const { data: transactions, error } = await query.order('created_at', { ascending: false })
+    const { data: transactions, error } = await query.order('timestamp', { ascending: false })
 
     if (error) throw error
 

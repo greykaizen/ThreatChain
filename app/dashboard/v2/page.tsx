@@ -42,7 +42,7 @@ export default function DashboardPage() {
       case "metrics":
         return <BlockchainMetrics />
       case "sharing":
-        return <SharedReports />
+        return <SharedReports setCurrentPage={setCurrentPage} />
       case "taxii":
         return <TaxiiServer />
       case "feed-extractor":
@@ -62,7 +62,42 @@ export default function DashboardPage() {
         <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Navbar />
-          <main className="flex-1 overflow-auto bg-background">{renderPage()}</main>
+          <main className="flex-1 overflow-auto bg-background relative">
+            {/* Keep-Alive Implementation: All pages stay mounted, visibility is toggled */}
+            <div className={currentPage === "dashboard" ? "block h-full" : "hidden h-0"}>
+              <DashboardOverview />
+            </div>
+            <div className={currentPage === "feeds" ? "block h-full" : "hidden h-0"}>
+              <FeedParser onProceedToGraph={handleProceedToGraph} />
+            </div>
+            <div className={currentPage === "graph" ? "block h-full" : "hidden h-0"}>
+              <KnowledgeGraph initialAttributes={selectedAttributes} initialData={csvData} />
+            </div>
+            <div className={currentPage === "trust" ? "block h-full" : "hidden h-0"}>
+              <TrustProvenance />
+            </div>
+            <div className={currentPage === "blockchain" ? "block h-full" : "hidden h-0"}>
+              <ProvenanceIntelligenceHub />
+            </div>
+            <div className={currentPage === "metrics" ? "block h-full" : "hidden h-0"}>
+              <BlockchainMetrics />
+            </div>
+            <div className={currentPage === "sharing" ? "block h-full" : "hidden h-0"}>
+              <SharedReports setCurrentPage={setCurrentPage} />
+            </div>
+            <div className={currentPage === "taxii" ? "block h-full" : "hidden h-0"}>
+              <TaxiiServer />
+            </div>
+            <div className={currentPage === "feed-extractor" ? "block h-full" : "hidden h-0"}>
+              <FeedExtractor />
+            </div>
+            <div className={currentPage === "clients" ? "block h-full" : "hidden h-0"}>
+              <Clients />
+            </div>
+            <div className={currentPage === "rag" ? "block h-full" : "hidden h-0"}>
+              <RagAssistant />
+            </div>
+          </main>
         </div>
       </div>
     </ProtectedRoute>

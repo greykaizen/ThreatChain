@@ -57,6 +57,7 @@ export default function RagAssistant() {
   ])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
+  const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini')
   const [ragStatus, setRagStatus] = useState<RagStatus | null>(null)
   const [reindexing, setReindexing] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -120,7 +121,7 @@ export default function RagAssistant() {
       const res = await fetch(`${API_BASE}/rag/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question.trim(), top_k: 5 }),
+        body: JSON.stringify({ question: question.trim(), top_k: 5, provider }),
       })
       const data = await res.json()
 
@@ -328,27 +329,43 @@ export default function RagAssistant() {
           {/* Input area */}
           <div className="border-t border-gray-100 p-4">
             <div className="flex gap-3 items-end">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask about threats, IOCs, malware campaigns... (Enter to send)"
-                rows={2}
-                className="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-                disabled={loading}
-              />
-              <button
-                onClick={() => sendMessage(input)}
-                disabled={loading || !input.trim()}
-                className="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </button>
+              <div className="flex-1 relative group">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={`Ask about threats...`}
+                  rows={2}
+                  className="w-full resize-none rounded-2xl border border-gray-200 pl-4 pr-24 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all"
+                  disabled={loading}
+                />
+                
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <select
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value as 'gemini' | 'openai')}
+                    className="text-[9px] font-black uppercase tracking-tighter bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer text-gray-500 hover:text-gray-900 transition-all shadow-sm"
+                  >
+                    <option value="gemini">Gemini</option>
+                    <option value="openai">GPT-4o</option>
+                  </select>
+
+                  <button
+                    onClick={() => sendMessage(input)}
+                    disabled={loading || !input.trim()}
+                    className={`w-8 h-8 rounded-xl text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm ${
+                      provider === 'openai' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    {loading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

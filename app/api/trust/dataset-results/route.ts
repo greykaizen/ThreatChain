@@ -61,6 +61,7 @@ export async function GET() {
         distribution
       },
       rows: safePredictions.map((p: any) => ({
+        entity_id: p.entity_id,
         ip: p.entity_id ? p.entity_id.substring(0, 8) : 'unknown',
         country: "N/A",
         rb_trust_score: trustMap.get(p.entity_id) || 70.0,

@@ -2,17 +2,24 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { SupabaseTrustCalculator } from '@/lib/trust-engine/SupabaseTrustCalculator'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient()
+    const { searchParams } = new URL(request.url)
+    const reportId = searchParams.get('id')
 
     // 1. Find a sample report to demo
-    const { data: report } = await supabase
+    let query = supabase
       .from('stix_reports')
       .select('id, title')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
+
+    if (reportId) {
+      query = query.eq('id', reportId)
+    } else {
+      query = query.order('created_at', { ascending: false })
+    }
+
+    const { data: report } = await query.limit(1).single()
 
     if (!report) {
       return NextResponse.json({

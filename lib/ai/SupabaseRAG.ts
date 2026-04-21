@@ -3,12 +3,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export class SupabaseRAG {
   private genAI: GoogleGenerativeAI
-  private model: any
+  private embeddingModel: any
 
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!)
-    // Upgrading to the high-fidelity v2 architecture
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-embedding-2-preview' })
+    this.embeddingModel = this.genAI.getGenerativeModel({ model: 'gemini-embedding-2-preview' })
   }
 
   /**
@@ -18,13 +17,10 @@ export class SupabaseRAG {
     const supabase = await createClient()
 
     try {
-      // 1. Generate Embedding using Gemini
       const cleanText = text.substring(0, 10000); 
-      
-      const result = await this.model.embedContent(cleanText)
+      const result = await this.embeddingModel.embedContent(cleanText)
       const embedding = result.embedding.values
 
-      // 2. Save to Supabase Vector
       const { error } = await supabase
         .from('stix_reports')
         .update({ embedding })
@@ -46,11 +42,9 @@ export class SupabaseRAG {
     const supabase = await createClient()
 
     try {
-      // 1. Generate Embedding for the query
-      const result = await this.model.embedContent(queryText)
+      const result = await this.embeddingModel.embedContent(queryText)
       const embedding = result.embedding.values
 
-      // 2. Perform Vector Search using Supabase RPC
       const { data, error } = await supabase.rpc('match_reports', {
         query_embedding: embedding,
         match_threshold: 0.3,
@@ -65,9 +59,8 @@ export class SupabaseRAG {
     }
   }
 
-  answerQuestion = async (question: string) => {
+  answerQuestion = async (question: string, modelProvider: 'gemini' | 'openai' = 'gemini') => {
     try {
-      // 1. Search for context
       const sources = await this.searchSimilarReports(question)
       
       if (!sources || sources.length === 0) {
@@ -78,14 +71,11 @@ export class SupabaseRAG {
         }
       }
 
-      // 2. Format context for LLM
       const context = sources.map((s: any) => 
         `Report: ${s.title}\nDescription: ${s.description}`
       ).join("\n\n")
 
-      // 3. Generate answer using Gemini 3.x Frontier
-      const chatModel = this.genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
-      const prompt = `You are a cybersecurity expert assistant for the ThreatChain platform. 
+      const systemPrompt = `You are a cybersecurity expert assistant for the ThreatChain platform. 
       Use the following context from STIX threat reports to answer the user's question.
       If you don't know the answer, say you don't know based on the provided data.
       
@@ -94,9 +84,30 @@ export class SupabaseRAG {
       
       Question: ${question}`
 
-      const result = await chatModel.generateContent(prompt)
-      const response = await result.response
-      const answer = response.text()
+      let answer = ""
+
+      if (modelProvider === 'openai') {
+        // Dynamic import to avoid crash if not installed, though we saw it's not in package.json
+        // We'll use fetch directly to avoid dependency issues for the presentation
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [{ role: 'user', content: systemPrompt }]
+          })
+        });
+        const data = await response.json();
+        answer = data.choices?.[0]?.message?.content || "OpenAI failed to respond.";
+      } else {
+        const chatModel = this.genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
+        const result = await chatModel.generateContent(systemPrompt)
+        const response = await result.response
+        answer = response.text()
+      }
 
       return {
         success: true,

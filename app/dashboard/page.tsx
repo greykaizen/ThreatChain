@@ -42,7 +42,7 @@ export default function DashboardPage() {
       case "metrics":
         return <BlockchainMetrics />
       case "sharing":
-        return <SharedReports />
+        return <SharedReports setCurrentPage={setCurrentPage} />
       case "taxii":
         return <TaxiiServer />
       case "feed-extractor":

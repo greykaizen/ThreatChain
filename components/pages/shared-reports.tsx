@@ -29,7 +29,11 @@ const cardStyle = {
   borderRadius: "0.75rem",
 }
 
-export default function SharedReports() {
+interface SharedReportsProps {
+  setCurrentPage: (page: string) => void;
+}
+
+export default function SharedReports({ setCurrentPage }: SharedReportsProps) {
   const [sharedReports, setSharedReports] = useState<SharedReport[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -163,11 +167,19 @@ export default function SharedReports() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Shared Reports</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          View and manage shared threat intelligence reports
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Discover Threat Reports</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            View and manage shared threat intelligence reports
+          </p>
+        </div>
+        <Button 
+          onClick={() => setCurrentPage('blockchain')}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+        >
+          Upload Report
+        </Button>
       </div>
 
       <div className="space-y-6">

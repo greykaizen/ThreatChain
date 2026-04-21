@@ -15,17 +15,19 @@ interface SidebarProps {
 
 const navItems = [
   { id: "dashboard", label: "Overview", icon: LayoutDashboard },
-  { id: "blockchain", label: "Upload Reports", icon: Blocks },
+  // { id: "blockchain", label: "Upload Reports", icon: Blocks },
   { id: "metrics", label: "Blockchain Metrics", icon: Activity },
-  { id: "sharing", label: "Threat feed", icon: Share2 },
-  { id: "taxii", label: "TAXII Server", icon: Server },
+  { id: "sharing", label: "Discover", icon: Share2 },
+  { id: "taxii", label: "Provenance Engine", icon: Server },
   { id: "feeds", label: "Feed Parser", icon: Database },
-  { id: "clients", label: "Organizations", icon: Users },
+  // { id: "clients", label: "Organizations", icon: Users },
   { id: "trust", label: "Trust", icon: Shield },
   { id: "rag", label: "AI Assistant", icon: BrainCircuit },
 ]
 
 export default function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
+  const { logout } = useAuth()
+
   return (
     <aside className="w-64 flex flex-col bg-white border-r border-slate-200 h-screen shadow-sm">
       {/* ─── SIDEBAR HEADER ─── */}

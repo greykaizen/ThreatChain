@@ -90,8 +90,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
+    try {
+      // Clear local state first for immediate UI response
+      setSupabaseUser(null)
+      setUser(null)
+      
+      // Use local scope for faster sign out (doesn't wait for server invalidation)
+      await supabase.auth.signOut({ scope: 'local' })
+      
+      // Clear any potential leftover auth tokens in localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.clear()
+        sessionStorage.clear()
+      }
+      
+      router.replace('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Fallback redirect
+      window.location.href = '/login'
+    }
   }
 
   return (
