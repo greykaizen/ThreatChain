@@ -5,8 +5,8 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  // Default to dashboard, but check if we should go to reset-password
-  let next = searchParams.get('next') ?? '/dashboard/v2'
+  // Default to dashboard v2
+  const next = searchParams.get('next') ?? '/dashboard/v2'
 
   if (code) {
     const cookieStore = await cookies()
@@ -31,20 +31,20 @@ export async function GET(request: Request) {
       }
     )
 
-    // Exchange the code for a session
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
-      const forwardedHost = request.headers.get('x-forwarded-host') 
-      const isLocalEnv = process.env.NODE_ENV === 'development'
-      
-      // Construct the final redirect URL
-      let redirectUrl = isLocalEnv ? `${origin}${next}` : `https://${forwardedHost || new URL(origin).host}${next}`
-      
+      // Force absolute URL to avoid root redirects
+      // Iforigin is not reliable (e.g. proxy), we use the request URL's origin
+      const redirectUrl = new URL(next, origin)
+      console.log('Auth Callback Success, redirecting to:', redirectUrl.toString())
       return NextResponse.redirect(redirectUrl)
+    } else {
+      console.error('Auth Callback Exchange Error:', error)
     }
   }
 
   // If something went wrong, go to login
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
+  console.warn('Auth Callback Failed or No Code, redirecting to login')
+  return NextResponse.redirect(new URL('/login?error=auth_callback_failed', origin))
 }

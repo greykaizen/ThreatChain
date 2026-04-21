@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import Sidebar from "@/components/sidebar"
 import DashboardOverview from "@/components/pages/v2/dashboard-overview"
@@ -20,40 +20,21 @@ export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState("dashboard")
   const [selectedAttributes, setSelectedAttributes] = useState<string[]>([])
   const [csvData, setCsvData] = useState<any[]>([])
+  
+  // Keep track of which tabs have been visited to lazy-mount them
+  const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({
+    dashboard: true
+  })
+
+  useEffect(() => {
+    setVisitedTabs(prev => ({ ...prev, [currentPage]: true }))
+  }, [currentPage])
 
   const handleProceedToGraph = (attributes: any[], data: any[]) => {
     setSelectedAttributes(attributes.map((a) => a.name))
     setCsvData(data)
+    setVisitedTabs(prev => ({ ...prev, graph: true }))
     setCurrentPage("graph")
-  }
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case "dashboard":
-        return <DashboardOverview />
-      case "feeds":
-        return <FeedParser onProceedToGraph={handleProceedToGraph} />
-      case "graph":
-        return <KnowledgeGraph initialAttributes={selectedAttributes} initialData={csvData} />
-      case "trust":
-        return <TrustProvenance />
-      case "blockchain":
-        return <ProvenanceIntelligenceHub />
-      case "metrics":
-        return <BlockchainMetrics />
-      case "sharing":
-        return <SharedReports setCurrentPage={setCurrentPage} />
-      case "taxii":
-        return <TaxiiServer />
-      case "feed-extractor":
-        return <FeedExtractor />
-      case "clients":
-        return <Clients />
-      case "rag":
-        return <RagAssistant />
-      default:
-        return <DashboardOverview />
-    }
   }
 
   return (
@@ -63,40 +44,70 @@ export default function DashboardPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <Navbar />
           <main className="flex-1 overflow-auto bg-background relative">
-            {/* Keep-Alive Implementation: All pages stay mounted, visibility is toggled */}
-            <div className={currentPage === "dashboard" ? "block h-full" : "hidden h-0"}>
+            {/* Optimized Lazy Keep-Alive: Components only mount when first needed */}
+            <div className={currentPage === "dashboard" ? "block h-full" : "hidden h-0 overflow-hidden"}>
               <DashboardOverview />
             </div>
-            <div className={currentPage === "feeds" ? "block h-full" : "hidden h-0"}>
-              <FeedParser onProceedToGraph={handleProceedToGraph} />
-            </div>
-            <div className={currentPage === "graph" ? "block h-full" : "hidden h-0"}>
-              <KnowledgeGraph initialAttributes={selectedAttributes} initialData={csvData} />
-            </div>
-            <div className={currentPage === "trust" ? "block h-full" : "hidden h-0"}>
-              <TrustProvenance />
-            </div>
-            <div className={currentPage === "blockchain" ? "block h-full" : "hidden h-0"}>
-              <ProvenanceIntelligenceHub />
-            </div>
-            <div className={currentPage === "metrics" ? "block h-full" : "hidden h-0"}>
-              <BlockchainMetrics />
-            </div>
-            <div className={currentPage === "sharing" ? "block h-full" : "hidden h-0"}>
-              <SharedReports setCurrentPage={setCurrentPage} />
-            </div>
-            <div className={currentPage === "taxii" ? "block h-full" : "hidden h-0"}>
-              <TaxiiServer />
-            </div>
-            <div className={currentPage === "feed-extractor" ? "block h-full" : "hidden h-0"}>
-              <FeedExtractor />
-            </div>
-            <div className={currentPage === "clients" ? "block h-full" : "hidden h-0"}>
-              <Clients />
-            </div>
-            <div className={currentPage === "rag" ? "block h-full" : "hidden h-0"}>
-              <RagAssistant />
-            </div>
+            
+            {visitedTabs.feeds && (
+              <div className={currentPage === "feeds" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <FeedParser onProceedToGraph={handleProceedToGraph} />
+              </div>
+            )}
+            
+            {visitedTabs.graph && (
+              <div className={currentPage === "graph" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <KnowledgeGraph initialAttributes={selectedAttributes} initialData={csvData} />
+              </div>
+            )}
+            
+            {visitedTabs.trust && (
+              <div className={currentPage === "trust" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <TrustProvenance />
+              </div>
+            )}
+            
+            {visitedTabs.blockchain && (
+              <div className={currentPage === "blockchain" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <ProvenanceIntelligenceHub />
+              </div>
+            )}
+            
+            {visitedTabs.metrics && (
+              <div className={currentPage === "metrics" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <BlockchainMetrics />
+              </div>
+            )}
+            
+            {visitedTabs.sharing && (
+              <div className={currentPage === "sharing" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <SharedReports setCurrentPage={setCurrentPage} />
+              </div>
+            )}
+            
+            {visitedTabs.taxii && (
+              <div className={currentPage === "taxii" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <TaxiiServer />
+              </div>
+            )}
+            
+            {visitedTabs["feed-extractor"] && (
+              <div className={currentPage === "feed-extractor" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <FeedExtractor />
+              </div>
+            )}
+            
+            {visitedTabs.clients && (
+              <div className={currentPage === "clients" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <Clients />
+              </div>
+            )}
+            
+            {visitedTabs.rag && (
+              <div className={currentPage === "rag" ? "block h-full" : "hidden h-0 overflow-hidden"}>
+                <RagAssistant />
+              </div>
+            )}
           </main>
         </div>
       </div>
