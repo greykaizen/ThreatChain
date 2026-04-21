@@ -5,49 +5,78 @@ export async function GET() {
   try {
     const supabase = await createClient()
 
-    const { data: predictions } = await supabase
+    // 1. Fetch ML Predictions
+    const { data: predictions, error: pError } = await supabase
       .from('ml_predictions')
       .select('*')
       .limit(50)
       .order('created_at', { ascending: false })
 
-    const { count: total } = await supabase
+    if (pError) {
+      console.error('Predictions fetch error:', pError);
+      throw pError;
+    }
+
+    // 2. Fetch Trust Scores (Rule-Based)
+    const { data: trustScores } = await supabase
+      .from('trust_scores')
+      .select('entity_id, overall_score')
+
+    const trustMap = new Map();
+    if (trustScores) {
+      trustScores.forEach(ts => {
+        trustMap.set(ts.entity_id, Number(ts.overall_score));
+      });
+    }
+
+    // 3. Get total count
+    const { count, error: cError } = await supabase
       .from('ml_predictions')
       .select('*', { count: 'exact', head: true })
+    
+    const total = count || predictions?.length || 0;
 
-    const avgXgb = predictions?.length ? predictions.reduce((acc, p) => acc + (p.predicted_abuse_score || 0), 0) / predictions.length : 0
-    const avgConf = predictions?.length ? predictions.reduce((acc, p) => acc + (p.predicted_confidence || 0), 0) / predictions.length : 0
+    // 4. Calculate stats with safe numbers
+    const safePredictions = predictions || [];
+    const avgXgb = safePredictions.length ? safePredictions.reduce((acc, p) => acc + (Number(p.predicted_abuse_score) || 0), 0) / safePredictions.length : 0
+    const avgRb = safePredictions.length ? safePredictions.reduce((acc, p) => acc + (trustMap.get(p.entity_id) || 72.5), 0) / safePredictions.length : 0
+    const avgConf = safePredictions.length ? safePredictions.reduce((acc, p) => acc + (Number(p.predicted_confidence) || 0), 0) / safePredictions.length : 0
 
     const distribution = {
       xgb: {
-        low: predictions?.filter(p => p.predicted_abuse_score < 25).length || 0,
-        lowMed: predictions?.filter(p => p.predicted_abuse_score >= 25 && p.predicted_abuse_score < 50).length || 0,
-        med: predictions?.filter(p => p.predicted_abuse_score >= 50 && p.predicted_abuse_score < 75).length || 0,
-        high: predictions?.filter(p => p.predicted_abuse_score >= 75).length || 0
+        low: safePredictions.filter(p => (Number(p.predicted_abuse_score) || 0) < 25).length,
+        lowMed: safePredictions.filter(p => (Number(p.predicted_abuse_score) || 0) >= 25 && (Number(p.predicted_abuse_score) || 0) < 50).length,
+        med: safePredictions.filter(p => (Number(p.predicted_abuse_score) || 0) >= 50 && (Number(p.predicted_abuse_score) || 0) < 75).length,
+        high: safePredictions.filter(p => (Number(p.predicted_abuse_score) || 0) >= 75).length
       }
     }
 
     const responseData = {
       success: true,
       stats: {
-        total: total || 0,
-        avgRb: 72.5,
+        total: total,
+        avgRb: Math.round(avgRb * 10) / 10,
         avgXgb: Math.round(avgXgb * 10) / 10,
         avgConf: Math.round(avgConf * 10) / 10,
         distribution
       },
-      rows: predictions?.map(p => ({
-        ip: p.entity_id.substring(0, 8),
+      rows: safePredictions.map((p: any) => ({
+        ip: p.entity_id ? p.entity_id.substring(0, 8) : 'unknown',
         country: "N/A",
-        rb_trust_score: 70.0,
-        xgb_abuse: p.predicted_abuse_score,
-        xgb_auto_block: p.predicted_auto_blocked
-      })) || []
+        rb_trust_score: trustMap.get(p.entity_id) || 70.0,
+        xgb_abuse: Number(p.predicted_abuse_score || 0),
+        xgb_auto_block: Boolean(p.predicted_auto_blocked)
+      }))
     }
 
     return NextResponse.json(responseData)
   } catch (error: any) {
     console.error('Trust Dataset Error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ 
+      success: false, 
+      error: error.message,
+      stats: { total: 0, avgRb: 0, avgXgb: 0, avgConf: 0, distribution: { xgb: { low: 0, lowMed: 0, med: 0, high: 0 } } },
+      rows: []
+    }, { status: 500 })
   }
 }
