@@ -25,6 +25,7 @@ import {
 import { LandingNavBar } from "@/components/LandingNavBar";
 import { LandingFooter } from "@/components/LandingFooter";
 import { Button } from "@/components/ui/button";
+import { PlatformShowcase } from "@/components/PlatformShowcase";
 
 // ─── DESIGN TOKENS (Modern Light SOC Specification) ─────────────────────────
 
@@ -356,6 +357,7 @@ export default function LandingPage() {
       <main>
         <Hero />
         <Statistics />
+        <PlatformShowcase />
 
         {/* Enhanced Deep Dive from original layout */}
         <section className="py-40 bg-white relative overflow-hidden">

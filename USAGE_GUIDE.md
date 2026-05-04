@@ -11,6 +11,8 @@
 
 ### Step 2: Select Attributes
 
+![Feed Parser](docs/images/feed-parser-attributes.png)
+
 1. After upload, you'll see all detected attributes with:
    - **Attribute name** (column header from CSV)
    - **Data type** (auto-detected: string, number, datetime, array)
@@ -57,10 +59,14 @@ On the Knowledge Graph page:
 
 1. Once the graph is generated, click **"Export STIX 2.1"** button
 2. A JSON file will be downloaded containing:
-   - STIX 2.1 compliant format
-   - All your CSV data rows as STIX indicators
-   - Selected attributes included in each indicator
-   - Proper STIX metadata (timestamps, IDs, etc.)
+
+## Provenance Tracking
+
+![Provenance Success](docs/images/provenance-success.png)
+
+ThreatChain automatically records the provenance of your data on the blockchain. You can view the status of your reports in the **Provenance Engine** or **Provenance Hub**.
+
+![Provenance Hub](docs/images/provenance-hub.png)
 
 ## Sample CSV Format
 
